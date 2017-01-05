@@ -1,15 +1,19 @@
 import React, {Component} from 'react';
 import IceCreamEntry from './ice-cream-entry';
 import IceCreamList from './ice-cream-list';
+import Login from './login';
 import 'whatwg-fetch';
 import './App.css';
 
-const REST_URL = 'http://localhost:1919/ice-cream';
+//const REST_URL = 'http://localhost:1919/ice-cream';
+const REST_URL = 'https://localhost:443/ice-cream';
 
 class App extends Component {
   constructor() {
     super();
     this.state = {
+      //authenticated: false,
+      authenticated: true,
       error: '',
       flavor: '',
       iceCreamMap: {},
@@ -71,29 +75,36 @@ class App extends Component {
   }
 
   render() {
-    const {error, flavor, iceCreamList} = this.state;
+    const {authenticated, error, flavor, iceCreamList} = this.state;
 
     const errorDiv = error ?
       <div className="error">{error}</div> :
       null;
+
+    const main = authenticated ?
+      <div>
+        <IceCreamEntry
+          addCb={this.addIceCream}
+          changeCb={this.changeFlavor}
+          flavor={flavor}
+        />
+        <label>Your favorite flavors are:</label>
+        <IceCreamList
+          deleteCb={this.deleteIceCream}
+          list={iceCreamList}
+        />
+      </div> :
+      <Login/>;
+
     return (
       <div className="App">
         <header>
-          <img src="ice-cream.png" alt="ice cream"/>
+          <img className="header-img" src="ice-cream.png" alt="ice cream"/>
           Ice cream, we all scream for it!
         </header>
         <div className="App-body">
           {errorDiv}
-          <IceCreamEntry
-            addCb={this.addIceCream}
-            changeCb={this.changeFlavor}
-            flavor={flavor}
-          />
-          <label>Your favorite flavors are:</label>
-          <IceCreamList
-            deleteCb={this.deleteIceCream}
-            list={iceCreamList}
-          />
+          {main}
         </div>
       </div>
     );

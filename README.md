@@ -1,3 +1,16 @@
+To start the REST server
+- cd server
+- nodemon server.js
+  or
+  node server.js
+
+To start the web server
+- npm start
+
+To run database demo
+- cd server
+- node demo.js
+
 This project was bootstrapped with [Create React App](https://github.com/facebookincubator/create-react-app).
 
 Below you will find some information on how to perform common tasks.<br>

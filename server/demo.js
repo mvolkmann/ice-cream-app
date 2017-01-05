@@ -36,6 +36,7 @@ pg.deleteAll(tableName)
   });
 
 /*
+// Alternate approach using async/await instead of promises.
 try {
   await pg.connect(dbUrl);
   await pg.deleteAll(tableName);
