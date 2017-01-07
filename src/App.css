@@ -2,20 +2,25 @@
   text-align: center;
 }
 
+.App button {
+  background-color: white;
+
+  border: solid lightgray 1px;
+  border-radius: 4px;
+  height: 27px; /* matches input height */
+  margin: 0 5px;
+
+  /*
+  border: none;
+  font-size: 12px;
+  padding: 0;
+  */
+}
+
 .App-body {
   display: inline-block;
   padding: 20px;
   text-align: left;
-}
-
-.App-body button {
-  background-color: white;
-  /*border: solid lightgray 1px;*/
-  border: none;
-  /*border-radius: 4px;*/
-  font-size: 12px;
-  /*height: 27px;*/ /* matches input height */
-  padding: 0;
 }
 
 .error {
@@ -32,6 +37,12 @@ header {
   line-height: 90px;
   margin: 0;
   text-align: center;
+}
+
+header button {
+  position: absolute;
+  right: 30px;
+  top: 30px;
 }
 
 .header-img {

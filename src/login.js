@@ -1,14 +1,15 @@
 import React, {Component} from 'react';
 import 'whatwg-fetch';
 
-const REST_URL = 'http://localhost:1919/ice-cream';
+//const REST_URL = 'https://localhost';
+const REST_URL = 'http://localhost:1919';
 
 class Login extends Component {
   constructor() {
     super();
     this.state = {
-      password: '',
-      username: ''
+      password: 'foobar', //TODO: prefilled for testing
+      username: 'mvolkmann' //TODO: prefilled for testing
     };
 
     this.onChangePassword = this.onChangePassword.bind(this);
@@ -29,18 +30,30 @@ class Login extends Component {
     this.onChange('username', event.target.value);
   }
 
-  onLogin() {
+  onLogin(event) {
+    event.preventDefault();
+
     const {password, username} = this.state;
-    const url =
-      `${REST_URL}/login?username=${username}&password=${password}`;
-    fetch(url, {method: 'POST'})
-      .then(() => {
-        console.log('successfully logged in');
+    const url = `${REST_URL}/login?username=${username}&password=${password}`;
+    fetch(url)
+      .then(res => res.text())
+      .then(text => {
+        const authenticated = text === 'true';
+        if (authenticated) {
+          window.setState({error: null, route: 'main'});
+        } else {
+          window.setState({error: 'invalid username or password'});
+        }
       })
-      .catch(res => this.setState({error: `${url}; ${res.message}`}));
+      .catch(res => {
+        console.error('login.js onLogin: res =', res);
+        window.setState({error: `${url}; ${res.message}`});
+      });
   }
 
-  onRegister() {
+  onRegister(event) {
+    event.preventDefault();
+
     const {password, username} = this.state;
     const url =
       `${REST_URL}/register?username=${username}&password=${password}`;
@@ -48,7 +61,10 @@ class Login extends Component {
       .then(() => {
         console.log('successfully registered new user');
       })
-      .catch(res => this.setState({error: `${url}; ${res.message}`}));
+      .catch(res => {
+        console.error('login.js onRegister: res =', res);
+        window.setState({error: `${url}; ${res.message}`});
+      });
   }
 
   render() {

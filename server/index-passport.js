@@ -1,7 +1,10 @@
+const bodyParser = require('body-parser');
+const cookieParser = require('cookie-parser');
 const express = require('express');
 const fs = require('fs');
 const https = require('https');
 const pg = require('./pg-simple');
+const session = require('express-session');
 
 const app = express();
 
@@ -17,6 +20,85 @@ app.use((req, res, next) => {
   res.header('Access-Control-Allow-Methods', 'GET,DELETE,POST,PUT');
   next();
 });
+
+// Configure use of passport.
+const passport = require('passport');
+passport.serializeUser((user, done) => done(null, user));
+passport.deserializeUser((user, done) => done(null, user));
+
+//TODO: You may not need all of these middlewares.
+//TODO: After getting it working, try removing some.
+app.use(cookieParser());
+app.use(bodyParser.json({extended: true}));
+app.use(bodyParser.urlencoded({extended: true}));
+app.use(session({
+  resave: false,
+  saveUninitialized: false,
+  secret: 'keyboard cat'
+}));
+app.use(passport.initialize());
+app.use(passport.session());
+//app.use(app.router());
+
+const LocalStrategy = require('passport-local').Strategy;
+passport.use(new LocalStrategy((username, password, done) => {
+  const sql =
+    `select password = crypt('${password}', password) ` +
+    `from users where username='${username}'`;
+  pg.query(sql)
+    .then(result => {
+      const [row] = result.rows;
+      if (row) {
+        //TODO: There must be a better way to get the boolean result!
+        const authenticated = row['?column?'];
+        if (authenticated) {
+          // Retrieve the user record and return it.
+          const sql = `select * from users where username='${username}'`;
+          pg.query(sql)
+            .then(result => {
+              const [user] = result.rows;
+              console.log('index.js passport: user =', user);
+              done(null, user);
+            })
+            .catch(err => done(err));
+        } else {
+          done(null, false, {message: 'incorrect username'});
+        }
+      } else {
+        done(null, false, {message: 'incorrect username'});
+      }
+    })
+    .catch(err => done(err));
+}));
+
+app.post('/login',
+  /*
+  passport.authenticate('local', {
+    successRedirect: '/#main',
+    failureRedirect: '/#login',
+    failureFlash: true // to flash an error message if authentication fails
+    //TODO: Probably need this for flash messages to work:
+    //TODO: https://github.com/jaredhanson/connect-flash
+  })
+  */
+  (req, res, next) => {
+    console.log('index.js login: req =', req);
+    passport.authenticate('local', (err, user, info) => {
+      console.log('index.js login: info =', info);
+      if (err) return next(err);
+      if (!user) {
+        return res.send({success: false, message: 'authentication failed'});
+      }
+      req.login(user, err => {
+        console.log('index.js more: err =', err);
+        if (!err) console.log('SUCCESS!');
+        return err ?
+          next(err) :
+          res.send({success: true, message: 'authentication succeeded'});
+      });
+    })(req, res, next);
+  }
+);
 
 // Must call this before other pg methods.
 pg.configure({
@@ -109,21 +191,24 @@ app.post('/register', (req, res) => {
 });
 
 /**
- * curl -k -XPOST https://localhost/login?username=mvolkmann\&password=foobar
+ * This works, but we want to use Passport to manage this.
+ * curl -k -XPOST https://localhost/login-old?username=mvolkmann\&password=foobar
  * WARNING: Don't forget the slash before &password in the curl command!
  */
-app.get('/login', (req, res) => {
+app.post('/login-old', (req, res) => {
+  //TODO: Get username and password from body?
   const {username, password} = req.query;
   const sql =
     `select password = crypt('${password}', password) ` +
     `from users where username='${username}'`;
+  console.log('index.js login-old: sql =', sql);
   pg.query(sql)
     .then(result => {
       const [row] = result.rows;
+      console.log('index.js login-old: row =', row);
       if (row) {
         //TODO: There must be a better way to get the boolean result!
         const authenticated = row['?column?'];
-        console.log('index.js login: authenticated =', authenticated);
         res.send(authenticated);
       } else {
         res.status(404).send('username not found');
