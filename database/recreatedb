@@ -1,4 +1,4 @@
-db=web-app-steps
+db=ice_cream
 dropdb $db
 createdb $db
 psql $db -f tables.ddl

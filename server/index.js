@@ -4,6 +4,10 @@ const fs = require('fs');
 const https = require('https');
 const pg = require('./pg-simple');
 
+function handleError(res, err) {
+  res.status(500).send(err);
+}
+
 const app = express();
 
 // Suppress the x-powered-by response header
@@ -23,7 +27,7 @@ app.use(bodyParser.json({extended: true}));
 
 // Must call this before other pg methods.
 pg.configure({
-  database: 'web-app-steps' // defaults to username
+  database: 'ice_cream' // defaults to username
   //host: 'localhost', // default
   //idleTimeoutMillis: 30000, // before a client is closed (default is 30000)
   //max: 10, // max clients in pool (default is 10)
@@ -45,42 +49,93 @@ app.get('/crash', () => {
   process.exit(1);
 });
 
-// Deletes a record from the ice-cream table.
+// Deletes an ice cream flavor from a given user.
 // curl -k -XDELETE https://localhost/ice-cream/some-id
-app.delete('/ice-cream/:id', (req, res) => {
-  const {id} = req.params;
-  pg.deleteById('ice_cream', id)
+app.delete('/ice-cream/:username/:id', (req, res) => {
+  const {id, username} = req.params;
+  const sql =
+    'delete from user_ice_creams ' +
+    "where username='$1' and ice_cream_id=$2";
+  pg.query(sql, username, id)
     .then(() => res.send())
-    .catch(err => res.status(500).send(err));
+    .catch(handleError.bind(null, res));
 });
 
 // Retrieves all records from the ice-cream table.
 // curl -k https://localhost/ice-cream
-app.get('/ice-cream', (req, res) => {
-  pg.getAll('ice_cream')
-    .then(result => res.json(result.rows))
-    .catch(err => res.status(500).send(err));
+app.get('/ice-cream/:username', (req, res) => {
+  const username = req.params.username;
+  const sql =
+    'select ic.id, ic.flavor ' +
+    'from ice_creams ic, user_ice_creams uic ' +
+    `where uic.username='${username}' ` +
+    'and uic.ice_cream_id=ic.id';
+  pg.query(sql)
+    .then(result => {
+      res.json(result.rows);
+    })
+    .catch(handleError.bind(null, res));
 });
 
 // Retrieves a one record from the ice-cream table by id.
 // curl -k https://localhost/ice-cream/some-id
+//TODO: Is this needed?
 app.get('/ice-cream/:id', (req, res) => {
   const {id} = req.params;
-  pg.getById('ice_cream', id)
+  pg.getById('ice_creams', id)
     .then(result => res.json(result.rows[0]))
-    .catch(err => res.status(500).send(err));
+    .catch(handleError.bind(null, res))
 });
 
-// Creates a new record in the ice-cream table.
+// Adds an ice cream flavor for a given user.
+// a new record in the ice-cream table.
 // curl -k -XPOST https://localhost/ice-cream?flavor=vanilla
-app.post('/ice-cream', (req, res) => {
+app.post('/ice-cream/:username', (req, res) => {
+  const {username} = req.params;
+  console.log('index.js add: username =', username);
   const {flavor} = req.query;
-  pg.insert('ice_cream', {flavor})
+  console.log('index.js add: flavor =', flavor);
+
+  function associate(username, iceCreamId) {
+    console.log('index.js associate: username =', username);
+    console.log('index.js associate: iceCreamId =', iceCreamId);
+    const sql =
+      'insert into user_ice_creams (username, ice_cream_id) ' +
+      'values ($1, $2)';
+    pg.query(sql, username, iceCreamId)
+      .then(() => res.send())
+      .catch(handleError.bind(null, res));
+  }
+
+  // Get the id of the flavor if it already exists.
+  let sql = 'select id from ice_creams where flavor=$1';
+  pg.query(sql, flavor)
     .then(result => {
-      const {id} = result.rows[0];
-      res.send(String(id));
+      const [row] = result.rows;
+      console.log('index.js add existing flavor: row =', row);
+      if (row) {
+        const {id} = row;
+        console.log('index.js add: existing id =', id);
+        associate(username, id);
+      } else {
+        // The flavor doesn't exist, so create it.
+        sql = 'insert into ice_creams (flavor) values ($1) returning id';
+        pg.query(sql, flavor)
+          .then(result => {
+            const [row] = result.rows;
+            console.log('index.js add new flavor: row =', row);
+            if (row) {
+              const {id} = row;
+              console.log('index.js add: new id =', id);
+              associate(username, id);
+            } else {
+              console.error('failed to create new flavor!');
+            }
+          })
+          .catch(handleError.bind(null, res));
+      }
     })
-    .catch(err => res.status(500).send(err));
+    .catch(handleError.bind(null, res));
 });
 
 // Updates a record in the ice-cream table by id.
@@ -88,32 +143,16 @@ app.post('/ice-cream', (req, res) => {
 app.put('/ice-cream/:id', (req, res) => {
   const {id} = req.params;
   const {flavor} = req.query;
-  pg.updateById('ice_cream', id, {flavor})
+  pg.updateById('ice_creams', id, {flavor})
     .then(() => res.send())
-    .catch(err => res.status(500).send(err));
+    .catch(handleError.bind(null, res));
 });
 
 /**
- * Creates a new user.
- * curl -k -XPOST https://localhost/register?username=mvolkmann\&password=foobar
- */
-app.post('/register', (req, res) => {
-  const {username, password} = req.query;
-
-  // Encrypt password using a Blowfish-based ciper (bf)
-  // performing 8 iterations.
-  const sql =
-    'insert into users (username, password) ' +
-    `values('${username}', crypt('${password}', gen_salt('bf', 8)))`;
-
-  pg.query(sql)
-    .then(() => res.send())
-    .catch(err => res.status(500).send(err));
-});
-
-/**
- * curl -k -XPOST https://localhost/login?username=mvolkmann\&password=foobar
- * WARNING: Don't forget the slash before &password in the curl command!
+ * Logs in a user.
+ * curl -k -XPOST https://localhost/login ...
+ * The username and password must be in the body
+ * and the content type must be "application/json".
  */
 app.post('/login', (req, res) => {
   const {username, password} = req.body;
@@ -126,17 +165,38 @@ app.post('/login', (req, res) => {
       if (row) {
         //TODO: There must be a better way to get the boolean result!
         const authenticated = row['?column?'];
-        console.log('index.js login: authenticated =', authenticated);
         res.send(authenticated);
       } else {
         res.status(404).send('username not found');
       }
     })
-    .catch(err => res.status(500).send(err));
+    .catch(handleError.bind(null, res));
+});
+
+/**
+ * Signs up a new user.
+ * curl -k -XPOST https://localhost/signup ...
+ * The username and password must be in the body
+ * and the content type must be "application/json".
+ */
+app.post('/signup', (req, res) => {
+  const {username, password} = req.body;
+  if (!username) return res.status(400).send('missing username');
+  if (!password) return res.status(400).send('missing password');
+
+  // Encrypt password using a Blowfish-based ciper (bf)
+  // performing 8 iterations.
+  const sql =
+    'insert into users (username, password) ' +
+    `values('${username}', crypt('${password}', gen_salt('bf', 8)))`;
+
+  pg.query(sql)
+    .then(() => res.send())
+    .catch(handleError.bind(null, res));
 });
 
 //TODO: You got curl working with HTTPS, but not REST calls from the React app.
-const useHttp = true;
+const useHttp = false;
 
 if (useHttp) {
   const PORT = 1919;

@@ -24,7 +24,7 @@ class App extends Component {
   };
 
   render() {
-    const {error, route} = this.state;
+    const {error, route, username} = this.state;
 
     return (
       <div className="App">
@@ -39,7 +39,7 @@ class App extends Component {
           }
           {
             route === 'login' ? <Login/> :
-            route === 'main' ? <Main/> :
+            route === 'main' ? <Main username={username}/> :
             <div>Unknown route {route}</div>
           }
 

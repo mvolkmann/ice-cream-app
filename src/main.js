@@ -4,8 +4,7 @@ import IceCreamList from './ice-cream-list';
 import 'whatwg-fetch';
 import './App.css';
 
-//const REST_URL = 'https://localhost/ice-cream';
-const REST_URL = 'http://localhost:1919/ice-cream';
+const REST_URL = 'https://localhost/ice-cream';
 
 class Main extends Component {
   constructor() {
@@ -23,7 +22,9 @@ class Main extends Component {
   }
 
   componentDidMount() {
-    fetch(REST_URL)
+    const {username} = this.props;
+    const url = `${REST_URL}/${username}`;
+    fetch(url)
       .then(res => res.json())
       .then(iceCreams => {
         const iceCreamMap = {};
@@ -36,7 +37,8 @@ class Main extends Component {
   }
 
   addIceCream(flavor) {
-    const url = `${REST_URL}?flavor=${flavor}`;
+    const {username} = this.props;
+    const url = `${REST_URL}/${username}?flavor=${flavor}`;
     fetch(url, {method: 'POST'})
       .then(res => res.text())
       .then(id => {
@@ -55,7 +57,8 @@ class Main extends Component {
   }
 
   deleteIceCream(id) {
-    const url = `${REST_URL}/${id}`;
+    const {username} = this.props;
+    const url = `${REST_URL}/${username}/${id}`;
     fetch(url, {method: 'DELETE'})
       .then(() => {
         const {iceCreamMap} = this.state;
@@ -89,5 +92,10 @@ class Main extends Component {
     );
   }
 }
+
+const {string} = React.PropTypes;
+Main.propTypes = {
+  username: string.isRequired
+};
 
 export default Main;

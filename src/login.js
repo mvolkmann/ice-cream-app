@@ -1,8 +1,8 @@
 import React, {Component} from 'react';
 import 'whatwg-fetch';
 
-//const REST_URL = 'https://localhost';
-const REST_URL = 'http://localhost:1919';
+const REST_URL = 'https://localhost';
+//const REST_URL = 'http://localhost:1919';
 
 class Login extends Component {
   constructor() {
@@ -15,7 +15,7 @@ class Login extends Component {
     this.onChangePassword = this.onChangePassword.bind(this);
     this.onChangeUsername = this.onChangeUsername.bind(this);
     this.onLogin = this.onLogin.bind(this);
-    this.onRegister = this.onRegister.bind(this);
+    this.onSignup = this.onSignup.bind(this);
   }
 
   onChange(name, value) {
@@ -44,29 +44,31 @@ class Login extends Component {
       .then(text => {
         const authenticated = text === 'true';
         if (authenticated) {
-          window.setState({error: null, route: 'main'});
+          window.setState({error: null, route: 'main', username});
         } else {
           window.setState({error: 'invalid username or password'});
         }
       })
       .catch(res => {
-        console.error('login.js onLogin: res =', res);
         window.setState({error: `${url}; ${res.message}`});
       });
   }
 
-  onRegister(event) {
+  onSignup(event) {
     event.preventDefault();
 
     const {password, username} = this.state;
-    const url =
-      `${REST_URL}/register?username=${username}&password=${password}`;
-    fetch(url, {method: 'POST'})
+    const url = `${REST_URL}/signup`;
+    fetch(url, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({username, password})
+    })
+      .then(res => res.text())
       .then(() => {
-        console.log('successfully registered new user');
+        window.setState({error: null, route: 'main', username});
       })
       .catch(res => {
-        console.error('login.js onRegister: res =', res);
         window.setState({error: `${url}; ${res.message}`});
       });
   }
@@ -90,7 +92,7 @@ class Login extends Component {
           />
         </div>
         <div className="row submit">
-          <button onClick={this.onRegister}>Register</button>
+          <button onClick={this.onSignup}>Signup</button>
           <button onClick={this.onLogin}>Log In</button>
         </div>
       </form>

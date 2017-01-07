@@ -1,5 +1,5 @@
 const pg = require('pg');
-const debug = false;
+const debug = true;
 
 let pool;
 
@@ -81,14 +81,14 @@ function insert(tableName, obj) {
   const sql =
     `insert into ${tableName} (${cols}) values(${placeholders}) returning id`;
   log('insert: sql =', sql);
-  return query(sql, values);
+  return query(sql, ...values);
 }
 
 /**
  * Executes a SQL query.
  * This is used by several of the other functions.
  */
-function query(sql, params) {
+function query(sql, ...params) {
   return new Promise((resolve, reject) => {
     if (!pool) return reject('pool not configured');
 
