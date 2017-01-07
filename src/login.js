@@ -34,8 +34,12 @@ class Login extends Component {
     event.preventDefault();
 
     const {password, username} = this.state;
-    const url = `${REST_URL}/login?username=${username}&password=${password}`;
-    fetch(url)
+    const url = `${REST_URL}/login`;
+    fetch(url, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({username, password})
+    })
       .then(res => res.text())
       .then(text => {
         const authenticated = text === 'true';

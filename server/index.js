@@ -1,3 +1,4 @@
+const bodyParser = require('body-parser');
 const express = require('express');
 const fs = require('fs');
 const https = require('https');
@@ -17,6 +18,8 @@ app.use((req, res, next) => {
   res.header('Access-Control-Allow-Methods', 'GET,DELETE,POST,PUT');
   next();
 });
+
+app.use(bodyParser.json({extended: true}));
 
 // Must call this before other pg methods.
 pg.configure({
@@ -112,8 +115,8 @@ app.post('/register', (req, res) => {
  * curl -k -XPOST https://localhost/login?username=mvolkmann\&password=foobar
  * WARNING: Don't forget the slash before &password in the curl command!
  */
-app.get('/login', (req, res) => {
-  const {username, password} = req.query;
+app.post('/login', (req, res) => {
+  const {username, password} = req.body;
   const sql =
     `select password = crypt('${password}', password) ` +
     `from users where username='${username}'`;
