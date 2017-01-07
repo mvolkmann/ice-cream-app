@@ -79,7 +79,7 @@ function insert(tableName, obj) {
   const placeholders =
     values.map((v, index) => '$' + (index + 1)).join(',');
   const sql =
-    `insert into ${tableName}(${cols}) values(${placeholders}) returning id`;
+    `insert into ${tableName} (${cols}) values(${placeholders}) returning id`;
   log('insert: sql =', sql);
   return query(sql, values);
 }
@@ -94,6 +94,7 @@ function query(sql, params) {
 
     pool.connect((err, client, done) => {
       if (err) return reject(err);
+      log('query: sql =', sql);
       client.query(sql, params, (err, result) => {
         handle(resolve, reject, err, result);
         done();

@@ -1,3 +1,5 @@
+create extension pgcrypto; -- needed to use gen_random_uuid()
+
 drop table if exists ice_cream;
 create table ice_cream (
   id serial primary key,
@@ -6,7 +8,6 @@ create table ice_cream (
 
 drop table if exists users;
 create table users (
-  id serial primary key,
-  username varchar(50),
-  password varchar(50)
+  username varchar(50) primary key,
+  password varchar(60) -- encrypted length
 );

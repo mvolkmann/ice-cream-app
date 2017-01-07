@@ -5,8 +5,8 @@ import Login from './login';
 import 'whatwg-fetch';
 import './App.css';
 
-//const REST_URL = 'http://localhost:1919/ice-cream';
-const REST_URL = 'https://localhost:443/ice-cream';
+const REST_URL = 'http://localhost:1919/ice-cream';
+//const REST_URL = 'https://localhost:443/ice-cream';
 
 class App extends Component {
   constructor() {

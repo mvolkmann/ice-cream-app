@@ -1,0 +1,4 @@
+db=web-app-steps
+dropdb $db
+createdb $db
+psql $db -f tables.ddl
