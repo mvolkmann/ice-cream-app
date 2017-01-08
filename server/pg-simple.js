@@ -1,5 +1,5 @@
 const pg = require('pg');
-const debug = true;
+const debug = false;
 
 let pool;
 
@@ -22,7 +22,7 @@ function handle(resolve, reject, err, result) {
 }
 
 function log(...msg) {
-  if (debug) console.log('database-promise.js:', msg.join(' '));
+  if (debug) console.log('pg-simple.js:', msg.join(' '));
 }
 
 /**
@@ -45,7 +45,7 @@ function deleteById(tableName, id) {
 
 /**
  * Disconnects from the database.
-*/
+ */
 function disconnect() {
   log('disconnecting');
   if (pool) pool.end();

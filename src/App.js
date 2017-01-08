@@ -7,10 +7,7 @@ import './App.css';
 class App extends Component {
   constructor() {
     super();
-    window.setState = newState => {
-      console.log('App.js setState: newState =', newState);
-      this.setState(newState);
-    };
+    window.setState = newState => this.setState(newState);
   }
 
   state = {
@@ -20,6 +17,7 @@ class App extends Component {
   };
 
   logout = () => {
+    // eslint-disable-next-line no-invalid-this
     this.setState({route: 'login'});
   };
 
@@ -31,18 +29,21 @@ class App extends Component {
         <header>
           <img className="header-img" src="ice-cream.png" alt="ice cream"/>
           Ice cream, we all scream for it!
-          <button onClick={this.logout}>Log out</button>
+          {
+            username ?
+              <button onClick={this.logout}>Log out</button> :
+              null
+          }
         </header>
         <div className="App-body">
-          {
-            error ? <div className="error">{error}</div> : null
-          }
           {
             route === 'login' ? <Login/> :
             route === 'main' ? <Main username={username}/> :
             <div>Unknown route {route}</div>
           }
-
+          {
+            error ? <div className="error">{error}</div> : null
+          }
         </div>
       </div>
     );

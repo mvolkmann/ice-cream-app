@@ -5,7 +5,7 @@ const https = require('https');
 const pg = require('./pg-simple');
 
 function handleError(res, err) {
-  res.status(500).send(err);
+  res.status(500).send(`${err.toString()}; ${err.detail}`);
 }
 
 const app = express();
@@ -53,10 +53,17 @@ app.get('/crash', () => {
 // curl -k -XDELETE https://localhost/ice-cream/some-id
 app.delete('/ice-cream/:username/:id', (req, res) => {
   const {id, username} = req.params;
+
+  // This approach gives an error that it cannot determine the type of $1.
+  //const sql =
+  //  'delete from user_ice_creams ' +
+  //  "where username='$1' and ice_cream_id=$2";
+  //pg.query(sql, username, Number(id))
+
   const sql =
     'delete from user_ice_creams ' +
-    "where username='$1' and ice_cream_id=$2";
-  pg.query(sql, username, id)
+    `where username='${username}' and ice_cream_id=${id}`;
+  pg.query(sql)
     .then(() => res.send())
     .catch(handleError.bind(null, res));
 });
@@ -92,18 +99,14 @@ app.get('/ice-cream/:id', (req, res) => {
 // curl -k -XPOST https://localhost/ice-cream?flavor=vanilla
 app.post('/ice-cream/:username', (req, res) => {
   const {username} = req.params;
-  console.log('index.js add: username =', username);
   const {flavor} = req.query;
-  console.log('index.js add: flavor =', flavor);
 
   function associate(username, iceCreamId) {
-    console.log('index.js associate: username =', username);
-    console.log('index.js associate: iceCreamId =', iceCreamId);
     const sql =
       'insert into user_ice_creams (username, ice_cream_id) ' +
       'values ($1, $2)';
     pg.query(sql, username, iceCreamId)
-      .then(() => res.send())
+      .then(() => res.send(String(iceCreamId)))
       .catch(handleError.bind(null, res));
   }
 
@@ -112,10 +115,8 @@ app.post('/ice-cream/:username', (req, res) => {
   pg.query(sql, flavor)
     .then(result => {
       const [row] = result.rows;
-      console.log('index.js add existing flavor: row =', row);
       if (row) {
         const {id} = row;
-        console.log('index.js add: existing id =', id);
         associate(username, id);
       } else {
         // The flavor doesn't exist, so create it.
@@ -123,13 +124,11 @@ app.post('/ice-cream/:username', (req, res) => {
         pg.query(sql, flavor)
           .then(result => {
             const [row] = result.rows;
-            console.log('index.js add new flavor: row =', row);
             if (row) {
               const {id} = row;
-              console.log('index.js add: new id =', id);
               associate(username, id);
             } else {
-              console.error('failed to create new flavor!');
+              handleError(res, 'failed to create new flavor');
             }
           })
           .catch(handleError.bind(null, res));
@@ -195,22 +194,14 @@ app.post('/signup', (req, res) => {
     .catch(handleError.bind(null, res));
 });
 
-//TODO: You got curl working with HTTPS, but not REST calls from the React app.
-const useHttp = false;
-
-if (useHttp) {
-  const PORT = 1919;
-  app.listen(PORT, () => console.log('listening on port', PORT));
-} else {
-  const options = {
-    key: fs.readFileSync('key.pem'),
-    cert: fs.readFileSync('cert.pem'),
-    passphrase: 'icecream'
-  };
-  const server = https.createServer(options, app);
-  server.on('error', err => {
-    console.log(err.code === 'EACCES' ? 'must use sudo' : err);
-  });
-  const PORT = 443;
-  server.listen(PORT, () => console.log('listening on port', PORT));
-}
+const options = {
+  key: fs.readFileSync('key.pem'),
+  cert: fs.readFileSync('cert.pem'),
+  passphrase: 'icecream'
+};
+const server = https.createServer(options, app);
+server.on('error', err => {
+  console.log(err.code === 'EACCES' ? 'must use sudo' : err);
+});
+const PORT = 443;
+server.listen(PORT, () => console.log('listening on port', PORT));

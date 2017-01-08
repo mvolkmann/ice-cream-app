@@ -9,12 +9,12 @@
   border-radius: 4px;
   height: 27px; /* matches input height */
   margin: 0 5px;
+}
 
-  /*
+.App .main button {
   border: none;
   font-size: 12px;
   padding: 0;
-  */
 }
 
 .App-body {

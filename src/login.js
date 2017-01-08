@@ -7,10 +7,7 @@ const REST_URL = 'https://localhost';
 class Login extends Component {
   constructor() {
     super();
-    this.state = {
-      password: 'foobar', //TODO: prefilled for testing
-      username: 'mvolkmann' //TODO: prefilled for testing
-    };
+    this.state = {};
 
     this.onChangePassword = this.onChangePassword.bind(this);
     this.onChangeUsername = this.onChangeUsername.bind(this);
@@ -59,14 +56,26 @@ class Login extends Component {
 
     const {password, username} = this.state;
     const url = `${REST_URL}/signup`;
+    let error = false;
+
     fetch(url, {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({username, password})
     })
-      .then(res => res.text())
-      .then(() => {
-        window.setState({error: null, route: 'main', username});
+      .then(res => {
+        if (!res.ok) error = true;
+        return res.text();
+      })
+      .then(text => {
+        if (error) {
+          if (/duplicate key/.test(text)) {
+            text = `User ${username} already exists.`;
+          }
+          window.setState({error: text});
+        } else { // successful signup
+          window.setState({error: null, route: 'main', username});
+        }
       })
       .catch(res => {
         window.setState({error: `${url}; ${res.message}`});
@@ -75,6 +84,8 @@ class Login extends Component {
 
   render() {
     const {password, username} = this.state;
+    const canSubmit = username && password;
+
     return (
       <form className="login-form">
         <div className="row">
@@ -92,8 +103,13 @@ class Login extends Component {
           />
         </div>
         <div className="row submit">
-          <button onClick={this.onSignup}>Signup</button>
-          <button onClick={this.onLogin}>Log In</button>
+          {/* Pressing enter in either input invokes the first button. */}
+          <button disabled={!canSubmit} onClick={this.onLogin}>
+            Log In
+          </button>
+          <button disabled={!canSubmit}onClick={this.onSignup}>
+            Signup
+          </button>
         </div>
       </form>
     );

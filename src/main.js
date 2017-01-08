@@ -76,14 +76,15 @@ class Main extends Component {
 
   render() {
     const {flavor, iceCreamList} = this.state;
+    const {username} = this.props;
     return (
-      <div>
+      <div className="main">
         <IceCreamEntry
           addCb={this.addIceCream}
           changeCb={this.changeFlavor}
           flavor={flavor}
         />
-        <label>Your favorite flavors are:</label>
+        <label>Favorite flavors of {username} are:</label>
         <IceCreamList
           deleteCb={this.deleteIceCream}
           list={iceCreamList}
