@@ -2,18 +2,25 @@ import React, {Component} from 'react';
 import 'whatwg-fetch';
 
 const REST_URL = 'https://localhost';
+const {string} = React.PropTypes;
+
+function onChangePassword(event) {
+  React.setState({password: event.target.value});
+}
+
+function onChangeUsername(event) {
+  React.setState({username: event.target.value});
+}
 
 /* eslint-disable no-invalid-this */
 class Login extends Component {
-  onChangePassword = event =>
-    window.setState({password: event.target.value});
 
-  onChangeUsername = event =>
-    window.setState({username: event.target.value});
+  static propTypes = {
+    password: string.isRequired,
+    username: string.isRequired
+  };
 
-  onLogin = event => {
-    event.preventDefault();
-
+  onLogin = () => {
     const {password, username} = this.props;
     const url = `${REST_URL}/login`;
     fetch(url, {
@@ -24,18 +31,16 @@ class Login extends Component {
       .then(res => res.text())
       .then(text => {
         const authenticated = text === 'true';
-        window.setState(authenticated ?
+        React.setState(authenticated ?
           {error: null, route: 'main', username} :
           {error: 'Invalid username or password.'});
       })
       .catch(res => {
-        window.setState({error: `${url}; ${res.message}`});
+        React.setState({error: `${url}; ${res.message}`});
       });
   }
 
-  onSignup = event => {
-    event.preventDefault();
-
+  onSignup = () => {
     const {password, username} = this.props;
     const url = `${REST_URL}/signup`;
     let error = false;
@@ -54,13 +59,13 @@ class Login extends Component {
           if (/duplicate key/.test(text)) {
             text = `User ${username} already exists.`;
           }
-          window.setState({error: text});
+          React.setState({error: text});
         } else { // successful signup
-          window.setState({error: null, route: 'main', username});
+          React.setState({error: null, route: 'main', username});
         }
       })
       .catch(res => {
-        window.setState({error: `${url}; ${res.message}`});
+        React.setState({error: `${url}; ${res.message}`});
       });
   }
 
@@ -69,19 +74,20 @@ class Login extends Component {
     const canSubmit = username && password;
 
     return (
-      <form className="login-form">
+      <form className="login-form"
+        onSubmit={event => event.preventDefault()}>
         <div className="row">
           <label>Username:</label>
           <input type="text"
             autoFocus
-            onChange={this.onChangeUsername}
+            onChange={onChangeUsername}
             value={username}
           />
         </div>
         <div className="row">
           <label>Password:</label>
           <input type="password"
-            onChange={this.onChangePassword}
+            onChange={onChangePassword}
             value={password}
           />
         </div>
@@ -98,11 +104,5 @@ class Login extends Component {
     );
   }
 }
-
-const {string} = React.PropTypes;
-Login.propTypes = {
-  password: string.isRequired,
-  username: string.isRequired
-};
 
 export default Login;

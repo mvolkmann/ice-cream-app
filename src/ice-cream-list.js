@@ -1,25 +1,33 @@
 import React from 'react';
 import IceCreamRow from './ice-cream-row';
 
-const IceCreamList = ({deleteCb, list}) =>
-  <ul className="ice-cream-list">
-    {
-      list.map(iceCream =>
-        <IceCreamRow
-          deleteCb={deleteCb}
-          key={iceCream.id}
-          iceCream={iceCream}
-        />)
-    }
-  </ul>;
+const IceCreamList = ({deleteCb, iceCreamMap}) => {
+  const list =
+    Object.keys(iceCreamMap).map(
+      id => ({id, flavor: iceCreamMap[id]}));
+  list.sort(
+    (a, b) => a.flavor.localeCompare(b.flavor));
 
-const {arrayOf, func, number, shape, string} = React.PropTypes;
+  return (
+    <ul className="ice-cream-list">
+      {
+        list.map(iceCream =>
+          <IceCreamRow
+            deleteCb={deleteCb}
+            id={iceCream.id}
+            key={iceCream.id}
+            flavor={iceCream.flavor}
+          />)
+      }
+    </ul>
+  );
+};
+
+const {func, object} = React.PropTypes;
 IceCreamList.propTypes = {
   deleteCb: func.isRequired,
-  list: arrayOf(shape({
-    flavor: string,
-    id: number
-  }))
+  // eslint-disable-next-line react/forbid-prop-types
+  iceCreamMap: object.isRequired
 };
 
 export default IceCreamList;

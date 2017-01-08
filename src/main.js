@@ -5,16 +5,24 @@ import 'whatwg-fetch';
 import './App.css';
 
 const REST_URL = 'https://localhost/ice-cream';
+const {object, string} = React.PropTypes;
+
+function changeFlavor(event) {
+  React.setState({flavor: event.target.value});
+}
 
 function handleError(url, res) {
-  window.setState({error: `${url}; ${res.message}`});
+  React.setState({error: `${url}; ${res.message}`});
 }
 
 /* eslint-disable no-invalid-this */
 class Main extends Component {
-  state = {
-    iceCreamMap: {},
-    iceCreamList: []
+
+  static propTypes = {
+    flavor: string.isRequired,
+    // eslint-disable-next-line react/forbid-prop-types
+    iceCreamMap: object.isRequired,
+    username: string.isRequired
   };
 
   componentDidMount() {
@@ -25,9 +33,9 @@ class Main extends Component {
       .then(iceCreams => {
         const iceCreamMap = {};
         for (const iceCream of iceCreams) {
-          iceCreamMap[iceCream.id] = iceCream;
+          iceCreamMap[iceCream.id] = iceCream.flavor;
         }
-        this.updateList(iceCreamMap);
+        React.setState({iceCreamMap});
       })
       .catch(handleError.bind(null, url));
   }
@@ -39,59 +47,42 @@ class Main extends Component {
       .then(res => res.text())
       .then(id => {
         id = Number(id);
-        const {iceCreamMap} = this.state;
-        iceCreamMap[id] = {id, flavor};
-        this.updateList(iceCreamMap);
-        window.setState({flavor: ''});
+        const {iceCreamMap} = this.props;
+        iceCreamMap[id] = flavor;
+        React.setState({flavor: '', iceCreamMap});
       })
       .catch(handleError.bind(null, url));
   };
-
-  changeFlavor = event =>
-    window.setState({flavor: event.target.value});
 
   deleteIceCream = id => {
     const {username} = this.props;
     const url = `${REST_URL}/${username}/${id}`;
     fetch(url, {method: 'DELETE'})
       .then(() => {
-        const {iceCreamMap} = this.state;
+        const {iceCreamMap} = this.props;
         delete iceCreamMap[id];
-        this.updateList(iceCreamMap);
+        React.setState({iceCreamMap});
       })
       .catch(handleError.bind(null, url));
   };
 
-  updateList(iceCreamMap) {
-    const iceCreamList = Object.keys(iceCreamMap).map(key => iceCreamMap[key]);
-    iceCreamList.sort((a, b) => a.flavor.localeCompare(b.flavor));
-    this.setState({iceCreamList, iceCreamMap});
-  }
-
   render() {
-    const {iceCreamList} = this.state;
-    const {flavor, username} = this.props;
+    const {flavor, iceCreamMap, username} = this.props;
     return (
       <div className="main">
         <IceCreamEntry
           addCb={this.addIceCream}
-          changeCb={this.changeFlavor}
+          changeCb={changeFlavor}
           flavor={flavor}
         />
-        <label>Favorite flavors of {username} are:</label>
+        <label>{username}&apos;s favorite flavors are:</label>
         <IceCreamList
           deleteCb={this.deleteIceCream}
-          list={iceCreamList}
+          iceCreamMap={iceCreamMap}
         />
       </div>
     );
   }
 }
-
-const {string} = React.PropTypes;
-Main.propTypes = {
-  flavor: string.isRequired,
-  username: string.isRequired
-};
 
 export default Main;

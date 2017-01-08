@@ -8,24 +8,24 @@ import './App.css';
 class App extends Component {
   constructor() {
     super();
-    window.setState = newState => this.setState(newState);
+    React.setState = this.setState.bind(this);
+    this.logout = () => React.setState({route: 'login'});
   }
 
   state = {
     authenticated: false,
     error: '',
     flavor: '',
-    password: '',
+    iceCreamMap: {},
+    password: 'foobar',
     route: 'login',
-    username: ''
-  };
-
-  logout = () => {
-    this.setState({route: 'login'});
+    username: 'mvolkmann'
   };
 
   render() {
-    const {error, flavor, password, route, username} = this.state;
+    const {
+      error, flavor, iceCreamMap, password, route, username
+    } = this.state;
 
     return (
       <div className="App">
@@ -43,7 +43,10 @@ class App extends Component {
           route === 'login' ?
             <Login username={username} password={password}/> :
             route === 'main' ?
-              <Main flavor={flavor} username={username}/> :
+              <Main
+                flavor={flavor}
+                iceCreamMap={iceCreamMap}
+                username={username}/> :
               <div>Unknown route {route}</div>
           }
           {
