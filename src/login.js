@@ -2,35 +2,19 @@ import React, {Component} from 'react';
 import 'whatwg-fetch';
 
 const REST_URL = 'https://localhost';
-//const REST_URL = 'http://localhost:1919';
 
+/* eslint-disable no-invalid-this */
 class Login extends Component {
-  constructor() {
-    super();
-    this.state = {};
+  onChangePassword = event =>
+    window.setState({password: event.target.value});
 
-    this.onChangePassword = this.onChangePassword.bind(this);
-    this.onChangeUsername = this.onChangeUsername.bind(this);
-    this.onLogin = this.onLogin.bind(this);
-    this.onSignup = this.onSignup.bind(this);
-  }
+  onChangeUsername = event =>
+    window.setState({username: event.target.value});
 
-  onChange(name, value) {
-    this.setState({[name]: value});
-  }
-
-  onChangePassword(event) {
-    this.onChange('password', event.target.value);
-  }
-
-  onChangeUsername(event) {
-    this.onChange('username', event.target.value);
-  }
-
-  onLogin(event) {
+  onLogin = event => {
     event.preventDefault();
 
-    const {password, username} = this.state;
+    const {password, username} = this.props;
     const url = `${REST_URL}/login`;
     fetch(url, {
       method: 'POST',
@@ -40,21 +24,19 @@ class Login extends Component {
       .then(res => res.text())
       .then(text => {
         const authenticated = text === 'true';
-        if (authenticated) {
-          window.setState({error: null, route: 'main', username});
-        } else {
-          window.setState({error: 'invalid username or password'});
-        }
+        window.setState(authenticated ?
+          {error: null, route: 'main', username} :
+          {error: 'Invalid username or password.'});
       })
       .catch(res => {
         window.setState({error: `${url}; ${res.message}`});
       });
   }
 
-  onSignup(event) {
+  onSignup = event => {
     event.preventDefault();
 
-    const {password, username} = this.state;
+    const {password, username} = this.props;
     const url = `${REST_URL}/signup`;
     let error = false;
 
@@ -83,21 +65,22 @@ class Login extends Component {
   }
 
   render() {
-    const {password, username} = this.state;
+    const {password, username} = this.props;
     const canSubmit = username && password;
 
     return (
       <form className="login-form">
         <div className="row">
           <label>Username:</label>
-          <input type="text" name="username"
+          <input type="text"
+            autoFocus
             onChange={this.onChangeUsername}
             value={username}
           />
         </div>
         <div className="row">
           <label>Password:</label>
-          <input type="password" name="password"
+          <input type="password"
             onChange={this.onChangePassword}
             value={password}
           />
@@ -116,8 +99,10 @@ class Login extends Component {
   }
 }
 
-//const {func} = React.PropTypes;
+const {string} = React.PropTypes;
 Login.propTypes = {
+  password: string.isRequired,
+  username: string.isRequired
 };
 
 export default Login;

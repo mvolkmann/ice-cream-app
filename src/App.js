@@ -4,6 +4,7 @@ import Main from './main';
 import 'whatwg-fetch';
 import './App.css';
 
+/* eslint-disable no-invalid-this */
 class App extends Component {
   constructor() {
     super();
@@ -13,16 +14,18 @@ class App extends Component {
   state = {
     authenticated: false,
     error: '',
-    route: 'login'
+    flavor: '',
+    password: '',
+    route: 'login',
+    username: ''
   };
 
   logout = () => {
-    // eslint-disable-next-line no-invalid-this
     this.setState({route: 'login'});
   };
 
   render() {
-    const {error, route, username} = this.state;
+    const {error, flavor, password, route, username} = this.state;
 
     return (
       <div className="App">
@@ -37,9 +40,11 @@ class App extends Component {
         </header>
         <div className="App-body">
           {
-            route === 'login' ? <Login/> :
-            route === 'main' ? <Main username={username}/> :
-            <div>Unknown route {route}</div>
+          route === 'login' ?
+            <Login username={username} password={password}/> :
+            route === 'main' ?
+              <Main flavor={flavor} username={username}/> :
+              <div>Unknown route {route}</div>
           }
           {
             error ? <div className="error">{error}</div> : null

@@ -15,7 +15,7 @@ const {func, string} = React.PropTypes;
 IceCreamEntry.propTypes = {
   addCb: func.isRequired,
   changeCb: func.isRequired,
-  flavor: string,
+  flavor: string.isRequired,
 };
 
 export default IceCreamEntry;

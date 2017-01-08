@@ -1,25 +1,21 @@
-import React, {Component} from 'react';
 import IceCreamEntry from './ice-cream-entry';
 import IceCreamList from './ice-cream-list';
+import React, {Component} from 'react';
 import 'whatwg-fetch';
 import './App.css';
 
 const REST_URL = 'https://localhost/ice-cream';
 
-class Main extends Component {
-  constructor() {
-    super();
-    this.state = {
-      error: '',
-      flavor: '',
-      iceCreamMap: {},
-      iceCreamList: []
-    };
+function handleError(url, res) {
+  window.setState({error: `${url}; ${res.message}`});
+}
 
-    this.addIceCream = this.addIceCream.bind(this);
-    this.changeFlavor = this.changeFlavor.bind(this);
-    this.deleteIceCream = this.deleteIceCream.bind(this);
-  }
+/* eslint-disable no-invalid-this */
+class Main extends Component {
+  state = {
+    iceCreamMap: {},
+    iceCreamList: []
+  };
 
   componentDidMount() {
     const {username} = this.props;
@@ -33,10 +29,10 @@ class Main extends Component {
         }
         this.updateList(iceCreamMap);
       })
-      .catch(res => this.setState({error: `${URL}; ${res.message}`}));
+      .catch(handleError.bind(null, url));
   }
 
-  addIceCream(flavor) {
+  addIceCream = flavor => {
     const {username} = this.props;
     const url = `${REST_URL}/${username}?flavor=${flavor}`;
     fetch(url, {method: 'POST'})
@@ -46,17 +42,15 @@ class Main extends Component {
         const {iceCreamMap} = this.state;
         iceCreamMap[id] = {id, flavor};
         this.updateList(iceCreamMap);
-        this.setState({flavor: ''});
+        window.setState({flavor: ''});
       })
-      .catch(res => this.setState({error: `${url}; ${res.message}`}));
-  }
+      .catch(handleError.bind(null, url));
+  };
 
-  changeFlavor(event) {
-    const flavor = event.target.value;
-    this.setState({flavor});
-  }
+  changeFlavor = event =>
+    window.setState({flavor: event.target.value});
 
-  deleteIceCream(id) {
+  deleteIceCream = id => {
     const {username} = this.props;
     const url = `${REST_URL}/${username}/${id}`;
     fetch(url, {method: 'DELETE'})
@@ -65,8 +59,8 @@ class Main extends Component {
         delete iceCreamMap[id];
         this.updateList(iceCreamMap);
       })
-      .catch(res => this.setState({error: `${url}; ${res.message}`}));
-  }
+      .catch(handleError.bind(null, url));
+  };
 
   updateList(iceCreamMap) {
     const iceCreamList = Object.keys(iceCreamMap).map(key => iceCreamMap[key]);
@@ -75,8 +69,8 @@ class Main extends Component {
   }
 
   render() {
-    const {flavor, iceCreamList} = this.state;
-    const {username} = this.props;
+    const {iceCreamList} = this.state;
+    const {flavor, username} = this.props;
     return (
       <div className="main">
         <IceCreamEntry
@@ -96,6 +90,7 @@ class Main extends Component {
 
 const {string} = React.PropTypes;
 Main.propTypes = {
+  flavor: string.isRequired,
   username: string.isRequired
 };
 
