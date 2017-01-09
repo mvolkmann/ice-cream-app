@@ -19,12 +19,13 @@ class App extends Component {
     iceCreamMap: {},
     password: 'foobar',
     route: 'login',
+    token: '',
     username: 'mvolkmann'
   };
 
   render() {
     const {
-      error, flavor, iceCreamMap, password, route, username
+      error, flavor, iceCreamMap, password, route, token, username
     } = this.state;
 
     return (
@@ -46,6 +47,7 @@ class App extends Component {
               <Main
                 flavor={flavor}
                 iceCreamMap={iceCreamMap}
+                token={token}
                 username={username}/> :
               <div>Unknown route {route}</div>
           }

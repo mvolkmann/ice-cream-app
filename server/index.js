@@ -1,11 +1,82 @@
 const bodyParser = require('body-parser');
+const crypto = require('crypto');
 const express = require('express');
 const fs = require('fs');
 const https = require('https');
 const pg = require('./pg-simple');
 
+const algorithm = 'aes-256-ctr';
+const password = 'V01kmann';
+const tokenMap = {};
+
+function authenticate(req, res) {
+  // Check for existence of token.
+  const encryptedToken = req.get('Authorization');
+  if (!encryptedToken) {
+    res.statusMessage = 'Token Reauired';
+    res.status(499).send();
+    return false;
+  }
+
+  const token = decrypt(encryptedToken);
+  const [reqUsername] = token.split('|');
+
+  // Check for matching cached token.
+  const cachedToken = tokenMap[reqUsername];
+  if (!cachedToken || cachedToken !== token) {
+    return false;
+  }
+
+  // Check for request from a different client IP address.
+  const [username, clientIP, timeout] = token.split('|');
+  if (req.ip !== clientIP) {
+    res.statusMessage = 'Invalid Token';
+    res.status(499).send();
+    return false;
+  }
+
+  // Check for expired token.
+  const timeoutMs = Number(timeout);
+  if (timeoutMs < Date.now()) {
+    res.statusMessage = 'Session Timeout';
+    res.status(440).send();
+    delete tokenMap[username];
+    return false;
+  }
+
+  return true;
+}
+
+function encrypt(text) {
+  const cipher = crypto.createCipher(algorithm, password);
+  return cipher.update(text, 'utf8', 'hex') + cipher.final('hex');
+}
+
+function decrypt(text) {
+  const decipher = crypto.createDecipher(algorithm, password);
+  return decipher.update(text, 'hex', 'utf8') + decipher.final('utf8');
+}
+
+function generateToken(username, req, res) {
+  // Generate a token based username, client ip address, and expiration time.
+  const expires = new Date();
+  //expires.setMinutes(expires.getMinutes() + 30); // adds 30 minutes
+  // Make token expire in 5 seconds for easier testing.
+  expires.setSeconds(expires.getSeconds() + 5);
+
+  const token = `${username}|${req.ip}|${expires.getTime()}`;
+  const encryptedToken = encrypt(token);
+  //const decryptedToken = decrypt(encryptedToken);
+  //console.log('index.js login: decryptedToken =', decryptedToken);
+
+  tokenMap[username] = token;
+
+  res.setHeader('Authorization', encryptedToken);
+}
+
 function handleError(res, err) {
-  res.status(500).send(`${err.toString()}; ${err.detail}`);
+  res.statusMessage = `${err.toString()}; ${err.detail}`;
+  res.status(500).send();
 }
 
 const app = express();
@@ -14,11 +85,13 @@ const app = express();
 // so hackers don't get a clue that might help them.
 app.set('x-powered-by', false);
 
-// Enable use of CORs.
+// Enable use of CORS.
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Headers',
-    'Origin, X-Requested-With, Content-Type, Accept');
+    'Accept, Authorization, Content-Type, Origin, X-Requested-With');
+  res.header('Access-Control-Expose-Headers',
+    'Authorization, Content-Type');
   res.header('Access-Control-Allow-Methods', 'GET,DELETE,POST,PUT');
   next();
 });
@@ -36,22 +109,11 @@ pg.configure({
   //user: 'Mark' // not needed in this example
 });
 
-app.get('/test', (req, res) => {
-  res.send('success');
-});
-
-app.get('/crash', () => {
-  // Throwing an error does not kill the server.
-  //throw new Error('I am crashing!');
-
-  // Exiting the process does kill server,
-  // but nodemon will restart it after a file change.
-  process.exit(1);
-});
-
 // Deletes an ice cream flavor from a given user.
 // curl -k -XDELETE https://localhost/ice-cream/some-id
 app.delete('/ice-cream/:username/:id', (req, res) => {
+  if (!authenticate(req, res)) return;
+
   const {id, username} = req.params;
 
   // This approach gives an error that it cannot determine the type of $1.
@@ -68,9 +130,20 @@ app.delete('/ice-cream/:username/:id', (req, res) => {
     .catch(handleError.bind(null, res));
 });
 
+app.get('/crash', () => {
+  // Throwing an error does not kill the server.
+  //throw new Error('I am crashing!');
+
+  // Exiting the process does kill server,
+  // but nodemon will restart it after a file change.
+  process.exit(1);
+});
+
 // Retrieves all records from the ice-cream table.
 // curl -k https://localhost/ice-cream
 app.get('/ice-cream/:username', (req, res) => {
+  if (!authenticate(req, res)) return;
+
   const username = req.params.username;
   const sql =
     'select ic.id, ic.flavor ' +
@@ -88,16 +161,24 @@ app.get('/ice-cream/:username', (req, res) => {
 // curl -k https://localhost/ice-cream/some-id
 //TODO: Is this needed?
 app.get('/ice-cream/:id', (req, res) => {
+  if (!authenticate(req, res)) return;
+
   const {id} = req.params;
   pg.getById('ice_creams', id)
     .then(result => res.json(result.rows[0]))
-    .catch(handleError.bind(null, res))
+    .catch(handleError.bind(null, res));
+});
+
+app.get('/test', (req, res) => {
+  res.send('success');
 });
 
 // Adds an ice cream flavor for a given user.
 // a new record in the ice-cream table.
 // curl -k -XPOST https://localhost/ice-cream?flavor=vanilla
 app.post('/ice-cream/:username', (req, res) => {
+  if (!authenticate(req, res)) return;
+
   const {username} = req.params;
   const {flavor} = req.query;
 
@@ -140,6 +221,8 @@ app.post('/ice-cream/:username', (req, res) => {
 // Updates a record in the ice-cream table by id.
 // curl -k -XPUT https://localhost/ice-cream/some-id?flavor=some-flavor
 app.put('/ice-cream/:id', (req, res) => {
+  if (!authenticate(req, res)) return;
+
   const {id} = req.params;
   const {flavor} = req.query;
   pg.updateById('ice_creams', id, {flavor})
@@ -155,6 +238,17 @@ app.put('/ice-cream/:id', (req, res) => {
  */
 app.post('/login', (req, res) => {
   const {username, password} = req.body;
+  if (!username) {
+    res.statusMessage = 'Missing Username';
+    return res.status(400).send();
+  }
+  if (!password) {
+    res.statusMessage = 'Missing Password';
+    return res.status(400).send();
+  }
+
+  generateToken(username, req, res);
+
   const sql =
     `select password = crypt('${password}', password) ` +
     `from users where username='${username}'`;
@@ -166,7 +260,8 @@ app.post('/login', (req, res) => {
         const authenticated = row['?column?'];
         res.send(authenticated);
       } else {
-        res.status(404).send('username not found');
+        res.statusMessage = 'Username Not Found';
+        res.status(404).send();
       }
     })
     .catch(handleError.bind(null, res));
@@ -180,8 +275,16 @@ app.post('/login', (req, res) => {
  */
 app.post('/signup', (req, res) => {
   const {username, password} = req.body;
-  if (!username) return res.status(400).send('missing username');
-  if (!password) return res.status(400).send('missing password');
+  if (!username) {
+    res.statusMessage = 'Missing Username';
+    return res.status(400).send();
+  }
+  if (!password) {
+    res.statusMessage = 'Missing Password';
+    return res.status(400).send();
+  }
+
+  generateToken(username, req, res);
 
   // Encrypt password using a Blowfish-based ciper (bf)
   // performing 8 iterations.

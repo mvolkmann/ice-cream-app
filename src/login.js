@@ -22,17 +22,22 @@ class Login extends Component {
 
   onLogin = () => {
     const {password, username} = this.props;
+    let token;
     const url = `${REST_URL}/login`;
+
     fetch(url, {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({username, password})
     })
-      .then(res => res.text())
+      .then(res => {
+        token = res.headers.get('Authorization');
+        return res.text();
+      })
       .then(text => {
         const authenticated = text === 'true';
         React.setState(authenticated ?
-          {error: null, route: 'main', username} :
+          {error: null, route: 'main', token, username} :
           {error: 'Invalid username or password.'});
       })
       .catch(res => {
@@ -42,6 +47,7 @@ class Login extends Component {
 
   onSignup = () => {
     const {password, username} = this.props;
+    let token;
     const url = `${REST_URL}/signup`;
     let error = false;
 
@@ -51,6 +57,7 @@ class Login extends Component {
       body: JSON.stringify({username, password})
     })
       .then(res => {
+        token = res.headers.get('Authorization');
         if (!res.ok) error = true;
         return res.text();
       })
@@ -61,7 +68,7 @@ class Login extends Component {
           }
           React.setState({error: text});
         } else { // successful signup
-          React.setState({error: null, route: 'main', username});
+          React.setState({error: null, route: 'main', token, username});
         }
       })
       .catch(res => {

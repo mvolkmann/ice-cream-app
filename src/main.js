@@ -12,7 +12,13 @@ function changeFlavor(event) {
 }
 
 function handleError(url, res) {
-  React.setState({error: `${url}; ${res.message}`});
+  const {status} = res;
+  console.log('main.js handleErr: status =', status);
+  if (status === 440) {
+    React.setState({error: 'Session Timeout', route: 'login'});
+  } else {
+    React.setState({error: res.message});
+  }
 }
 
 /* eslint-disable no-invalid-this */
@@ -22,15 +28,23 @@ class Main extends Component {
     flavor: string.isRequired,
     // eslint-disable-next-line react/forbid-prop-types
     iceCreamMap: object.isRequired,
+    token: string.isRequired,
     username: string.isRequired
   };
 
   componentDidMount() {
-    const {username} = this.props;
+    const {token, username} = this.props;
+    this.headers = {Authorization: token};
+
     const url = `${REST_URL}/${username}`;
-    fetch(url)
-      .then(res => res.json())
+    fetch(url, {headers: this.headers})
+      .then(res => {
+        if (!res.ok) handleError(url, res);
+        return res.ok ? res.json() : null;
+      })
       .then(iceCreams => {
+        if (!iceCreams) return;
+
         const iceCreamMap = {};
         for (const iceCream of iceCreams) {
           iceCreamMap[iceCream.id] = iceCream.flavor;
@@ -43,9 +57,14 @@ class Main extends Component {
   addIceCream = flavor => {
     const {username} = this.props;
     const url = `${REST_URL}/${username}?flavor=${flavor}`;
-    fetch(url, {method: 'POST'})
-      .then(res => res.text())
+    fetch(url, {method: 'POST', headers: this.headers})
+      .then(res => {
+        if (!res.ok) handleError(url, res);
+        return res.ok ? res.text() : null;
+      })
       .then(id => {
+        if (!id) return;
+
         id = Number(id);
         const {iceCreamMap} = this.props;
         iceCreamMap[id] = flavor;
@@ -57,11 +76,15 @@ class Main extends Component {
   deleteIceCream = id => {
     const {username} = this.props;
     const url = `${REST_URL}/${username}/${id}`;
-    fetch(url, {method: 'DELETE'})
-      .then(() => {
-        const {iceCreamMap} = this.props;
-        delete iceCreamMap[id];
-        React.setState({iceCreamMap});
+    fetch(url, {method: 'DELETE', headers: this.headers})
+      .then(res => {
+        if (res.ok) {
+          const {iceCreamMap} = this.props;
+          delete iceCreamMap[id];
+          React.setState({iceCreamMap});
+        } else {
+          handleError(url, res);
+        }
       })
       .catch(handleError.bind(null, url));
   };
