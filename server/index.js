@@ -1,9 +1,7 @@
 const auth = require('./auth');
-const bodyParser = require('body-parser');
 const express = require('express');
-const fs = require('fs');
-const https = require('https');
 const pg = require('./pg-simple');
+const server = require('./server');
 
 function handleError(res, err) {
   res.statusMessage = `${err.toString()}; ${err.detail}`;
@@ -11,23 +9,7 @@ function handleError(res, err) {
 }
 
 const app = express();
-
-// Suppress the x-powered-by response header
-// so hackers don't get a clue that might help them.
-app.set('x-powered-by', false);
-
-// Enable use of CORS.
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Headers',
-    'Accept, Authorization, Content-Type, Origin, X-Requested-With');
-  res.header('Access-Control-Expose-Headers',
-    'Authorization, Content-Type');
-  res.header('Access-Control-Allow-Methods', 'GET,DELETE,POST,PUT');
-  next();
-});
-
-app.use(bodyParser.json({extended: true}));
+server.setup(app);
 
 // Must call this before other pg methods.
 pg.configure({
@@ -178,6 +160,7 @@ app.put('/ice-cream/:id', (req, res) => {
  * and the content type must be "application/json".
  */
 app.post('/login', (req, res) => {
+  console.log('index.js login: req.body =', req.body);
   const {username, password} = req.body;
   if (!username) {
     res.statusMessage = 'Missing Username';
@@ -250,14 +233,4 @@ app.post('/signup', (req, res) => {
     .catch(handleError.bind(null, res));
 });
 
-const options = {
-  key: fs.readFileSync('key.pem'),
-  cert: fs.readFileSync('cert.pem'),
-  passphrase: 'icecream'
-};
-const server = https.createServer(options, app);
-server.on('error', err => {
-  console.log(err.code === 'EACCES' ? 'must use sudo' : err);
-});
-const PORT = 443;
-server.listen(PORT, () => console.log('listening on port', PORT));
+server.start();
