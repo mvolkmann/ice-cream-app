@@ -47,14 +47,14 @@ function authenticate(req, res) {
   return true;
 }
 
-function encrypt(text) {
-  const cipher = crypto.createCipher(algorithm, password);
-  return cipher.update(text, 'utf8', 'hex') + cipher.final('hex');
-}
-
 function decrypt(text) {
   const decipher = crypto.createDecipher(algorithm, password);
   return decipher.update(text, 'hex', 'utf8') + decipher.final('utf8');
+}
+
+function encrypt(text) {
+  const cipher = crypto.createCipher(algorithm, password);
+  return cipher.update(text, 'utf8', 'hex') + cipher.final('hex');
 }
 
 function generateToken(username, req, res) {
@@ -109,8 +109,11 @@ pg.configure({
   //user: 'Mark' // not needed in this example
 });
 
-// Deletes an ice cream flavor from a given user.
-// curl -k -XDELETE https://localhost/ice-cream/some-id
+/**
+ * Deletes an ice cream flavor from a given user.
+ * The "Authorization" request header must be set.
+ * curl -k -XDELETE https://localhost/ice-cream/some-id
+ */
 app.delete('/ice-cream/:username/:id', (req, res) => {
   if (!authenticate(req, res)) return;
 
@@ -139,8 +142,10 @@ app.get('/crash', () => {
   process.exit(1);
 });
 
-// Retrieves all records from the ice-cream table.
-// curl -k https://localhost/ice-cream
+/**
+ * Retrieves all records from the ice-cream table.
+ * curl -k https://localhost/ice-cream
+ */
 app.get('/ice-cream/:username', (req, res) => {
   if (!authenticate(req, res)) return;
 
@@ -157,8 +162,10 @@ app.get('/ice-cream/:username', (req, res) => {
     .catch(handleError.bind(null, res));
 });
 
-// Retrieves a one record from the ice-cream table by id.
-// curl -k https://localhost/ice-cream/some-id
+/**
+ * Retrieves a one record from the ice-cream table by id.
+ * curl -k https://localhost/ice-cream/some-id
+ */
 //TODO: Is this needed?
 app.get('/ice-cream/:id', (req, res) => {
   if (!authenticate(req, res)) return;
@@ -173,9 +180,11 @@ app.get('/test', (req, res) => {
   res.send('success');
 });
 
-// Adds an ice cream flavor for a given user.
-// a new record in the ice-cream table.
-// curl -k -XPOST https://localhost/ice-cream?flavor=vanilla
+/**
+ * Adds an ice cream flavor for a given user.
+ * a new record in the ice-cream table.
+ * curl -k -XPOST https://localhost/ice-cream?flavor=vanilla
+ */
 app.post('/ice-cream/:username', (req, res) => {
   if (!authenticate(req, res)) return;
 
@@ -218,8 +227,10 @@ app.post('/ice-cream/:username', (req, res) => {
     .catch(handleError.bind(null, res));
 });
 
-// Updates a record in the ice-cream table by id.
-// curl -k -XPUT https://localhost/ice-cream/some-id?flavor=some-flavor
+/**
+ * Updates a record in the ice-cream table by id.
+ * curl -k -XPUT https://localhost/ice-cream/some-id?flavor=some-flavor
+ */
 app.put('/ice-cream/:id', (req, res) => {
   if (!authenticate(req, res)) return;
 
@@ -265,6 +276,21 @@ app.post('/login', (req, res) => {
       }
     })
     .catch(handleError.bind(null, res));
+});
+
+/**
+ * Logs out a user.
+ * curl -k -XPOST https://localhost/logout ...
+ * The "Authorization" request header must be set.
+ */
+app.post('/logout', (req, res) => {
+  if (!authenticate(req, res)) return;
+
+  const encryptedToken = req.get('Authorization');
+  const token = decrypt(encryptedToken);
+  const [username] = token.split('|');
+  delete tokenMap[username];
+  res.send();
 });
 
 /**

@@ -4,12 +4,14 @@ import Main from './main';
 import 'whatwg-fetch';
 import './App.css';
 
+const REST_URL = 'https://localhost';
+
 /* eslint-disable no-invalid-this */
 class App extends Component {
+
   constructor() {
     super();
     React.setState = this.setState.bind(this);
-    this.logout = () => React.setState({route: 'login'});
   }
 
   state = {
@@ -21,6 +23,15 @@ class App extends Component {
     route: 'login',
     token: '',
     username: 'mvolkmann'
+  };
+
+  logout = () => {
+    const url = `${REST_URL}/logout`;
+    const {token} = this.state;
+    const headers = {Authorization: token};
+    fetch(url, {method: 'POST', headers})
+      .then(() => React.setState({route: 'login'}))
+      .catch();
   };
 
   render() {
