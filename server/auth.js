@@ -8,7 +8,7 @@ function authorize(req, res) {
   // Check for existence of token.
   const encryptedToken = req.get('Authorization');
   if (!encryptedToken) {
-    res.statusMessage = 'Token Reauired';
+    res.statusMessage = 'Token Required';
     res.status(499).send();
     return false;
   }

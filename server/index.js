@@ -150,15 +150,13 @@ app.post('/login', (req, res) => {
   auth.generateToken(username, req, res);
 
   const sql =
-    `select password = crypt('${password}', password) ` +
+    `select password = crypt('${password}', password) as authenticated ` +
     `from users where username='${username}'`;
   pg.query(sql)
     .then(result => {
       const [row] = result.rows;
       if (row) {
-        //TODO: There must be a better way to get the boolean result!
-        const authenticated = row['?column?'];
-        res.send(authenticated);
+        res.send(row.authenticated);
       } else {
         res.statusMessage = 'Username Not Found';
         res.status(404).send();
