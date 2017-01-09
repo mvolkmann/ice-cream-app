@@ -4,7 +4,6 @@ import React, {Component} from 'react';
 import 'whatwg-fetch';
 import './App.css';
 
-const REST_URL = 'https://localhost/ice-cream';
 const {object, string} = React.PropTypes;
 
 function changeFlavor(event) {
@@ -28,15 +27,16 @@ class Main extends Component {
     flavor: string.isRequired,
     // eslint-disable-next-line react/forbid-prop-types
     iceCreamMap: object.isRequired,
+    restUrl: string.isRequired,
     token: string.isRequired,
     username: string.isRequired
   };
 
   componentDidMount() {
-    const {token, username} = this.props;
+    const {restUrl, token, username} = this.props;
     this.headers = {Authorization: token};
 
-    const url = `${REST_URL}/${username}`;
+    const url = `${restUrl}/ice-cream/${username}`;
     fetch(url, {headers: this.headers})
       .then(res => {
         if (!res.ok) handleError(url, res);
@@ -55,8 +55,8 @@ class Main extends Component {
   }
 
   addIceCream = flavor => {
-    const {username} = this.props;
-    const url = `${REST_URL}/${username}?flavor=${flavor}`;
+    const {restUrl, username} = this.props;
+    const url = `${restUrl}/ice-cream/${username}?flavor=${flavor}`;
     fetch(url, {method: 'POST', headers: this.headers})
       .then(res => {
         if (!res.ok) handleError(url, res);
@@ -74,8 +74,8 @@ class Main extends Component {
   };
 
   deleteIceCream = id => {
-    const {username} = this.props;
-    const url = `${REST_URL}/${username}/${id}`;
+    const {restUrl, username} = this.props;
+    const url = `${restUrl}/ice-cream/${username}/${id}`;
     fetch(url, {method: 'DELETE', headers: this.headers})
       .then(res => {
         if (res.ok) {

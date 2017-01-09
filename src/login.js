@@ -1,7 +1,6 @@
 import React, {Component} from 'react';
 import 'whatwg-fetch';
 
-const REST_URL = 'https://localhost';
 const {string} = React.PropTypes;
 
 function onChangePassword(event) {
@@ -17,13 +16,14 @@ class Login extends Component {
 
   static propTypes = {
     password: string.isRequired,
+    restUrl: string.isRequired,
     username: string.isRequired
   };
 
   onLogin = () => {
-    const {password, username} = this.props;
+    const {password, restUrl, username} = this.props;
     let token;
-    const url = `${REST_URL}/login`;
+    const url = `${restUrl}/login`;
 
     fetch(url, {
       method: 'POST',
@@ -46,9 +46,9 @@ class Login extends Component {
   }
 
   onSignup = () => {
-    const {password, username} = this.props;
+    const {password, restUrl, username} = this.props;
     let token;
-    const url = `${REST_URL}/signup`;
+    const url = `${restUrl}/signup`;
     let error = false;
 
     fetch(url, {

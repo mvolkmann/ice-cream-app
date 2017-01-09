@@ -4,8 +4,6 @@ import Main from './main';
 import 'whatwg-fetch';
 import './App.css';
 
-const REST_URL = 'https://localhost';
-
 /* eslint-disable no-invalid-this */
 class App extends Component {
 
@@ -20,13 +18,14 @@ class App extends Component {
     flavor: '',
     iceCreamMap: {},
     password: 'foobar',
+    restUrl: 'https://localhost',
     route: 'login',
     token: '',
     username: 'mvolkmann'
   };
 
   logout = () => {
-    const url = `${REST_URL}/logout`;
+    const url = `${this.state.restUrl}/logout`;
     const {token} = this.state;
     const headers = {Authorization: token};
     fetch(url, {method: 'POST', headers})
@@ -36,7 +35,7 @@ class App extends Component {
 
   render() {
     const {
-      error, flavor, iceCreamMap, password, route, token, username
+      error, flavor, iceCreamMap, password, restUrl, route, token, username
     } = this.state;
 
     return (
@@ -53,13 +52,19 @@ class App extends Component {
         <div className="App-body">
           {
           route === 'login' ?
-            <Login username={username} password={password}/> :
+            <Login
+              username={username}
+              password={password}
+              restUrl={restUrl}
+            /> :
             route === 'main' ?
               <Main
                 flavor={flavor}
                 iceCreamMap={iceCreamMap}
+                restUrl={restUrl}
                 token={token}
-                username={username}/> :
+                username={username}
+              /> :
               <div>Unknown route {route}</div>
           }
           {
