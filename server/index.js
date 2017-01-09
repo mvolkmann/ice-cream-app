@@ -31,16 +31,10 @@ app.delete('/ice-cream/:username/:id', (req, res) => {
   if (!auth.authorize(req, res)) return;
   const {id, username} = req.params;
 
-  //TODO: This approach gives an error that it cannot determine the type of $1.
-  //const sql =
-  //  'delete from user_ice_creams ' +
-  //  "where username='$1' and ice_cream_id=$2";
-  //pg.query(sql, username, Number(id))
-
   const sql =
     'delete from user_ice_creams ' +
-    `where username='${username}' and ice_cream_id=${id}`;
-  pg.query(sql)
+    'where username=$1 and ice_cream_id=$2';
+  pg.query(sql, username, id)
     .then(() => res.send())
     .catch(handleError.bind(null, res));
 });
