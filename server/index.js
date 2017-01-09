@@ -3,13 +3,13 @@ const express = require('express');
 const pg = require('./pg-simple');
 const server = require('./server');
 
+const app = express();
+server.setup(app);
+
 function handleError(res, err) {
   res.statusMessage = `${err.toString()}; ${err.detail}`;
   res.status(500).send();
 }
-
-const app = express();
-server.setup(app);
 
 // Must call this before other pg methods.
 pg.configure({
@@ -31,7 +31,7 @@ app.delete('/ice-cream/:username/:id', (req, res) => {
   if (!auth.authorize(req, res)) return;
   const {id, username} = req.params;
 
-  // This approach gives an error that it cannot determine the type of $1.
+  //TODO: This approach gives an error that it cannot determine the type of $1.
   //const sql =
   //  'delete from user_ice_creams ' +
   //  "where username='$1' and ice_cream_id=$2";
@@ -72,24 +72,6 @@ app.get('/ice-cream/:username', (req, res) => {
       res.json(result.rows);
     })
     .catch(handleError.bind(null, res));
-});
-
-/**
- * Retrieves a one record from the ice-cream table by id.
- * curl -k https://localhost/ice-cream/some-id
- */
-//TODO: Is this needed?
-app.get('/ice-cream/:id', (req, res) => {
-  if (!auth.authorize(req, res)) return;
-
-  const {id} = req.params;
-  pg.getById('ice_creams', id)
-    .then(result => res.json(result.rows[0]))
-    .catch(handleError.bind(null, res));
-});
-
-app.get('/test', (req, res) => {
-  res.send('success');
 });
 
 /**
