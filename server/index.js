@@ -1,78 +1,9 @@
+const auth = require('./auth');
 const bodyParser = require('body-parser');
-const crypto = require('crypto');
 const express = require('express');
 const fs = require('fs');
 const https = require('https');
 const pg = require('./pg-simple');
-
-const algorithm = 'aes-256-ctr';
-const password = 'V01kmann';
-const tokenMap = {};
-
-function authenticate(req, res) {
-  // Check for existence of token.
-  const encryptedToken = req.get('Authorization');
-  if (!encryptedToken) {
-    res.statusMessage = 'Token Reauired';
-    res.status(499).send();
-    return false;
-  }
-
-  const token = decrypt(encryptedToken);
-  const [reqUsername] = token.split('|');
-
-  // Check for matching cached token.
-  const cachedToken = tokenMap[reqUsername];
-  if (!cachedToken || cachedToken !== token) {
-    return false;
-  }
-
-  // Check for request from a different client IP address.
-  const [username, clientIP, timeout] = token.split('|');
-  if (req.ip !== clientIP) {
-    res.statusMessage = 'Invalid Token';
-    res.status(499).send();
-    return false;
-  }
-
-  // Check for expired token.
-  const timeoutMs = Number(timeout);
-  if (timeoutMs < Date.now()) {
-    res.statusMessage = 'Session Timeout';
-    res.status(440).send();
-    delete tokenMap[username];
-    return false;
-  }
-
-  return true;
-}
-
-function decrypt(text) {
-  const decipher = crypto.createDecipher(algorithm, password);
-  return decipher.update(text, 'hex', 'utf8') + decipher.final('utf8');
-}
-
-function encrypt(text) {
-  const cipher = crypto.createCipher(algorithm, password);
-  return cipher.update(text, 'utf8', 'hex') + cipher.final('hex');
-}
-
-function generateToken(username, req, res) {
-  // Generate a token based username, client ip address, and expiration time.
-  const expires = new Date();
-  //expires.setMinutes(expires.getMinutes() + 30); // adds 30 minutes
-  // Make token expire in 5 seconds for easier testing.
-  expires.setSeconds(expires.getSeconds() + 5);
-
-  const token = `${username}|${req.ip}|${expires.getTime()}`;
-  const encryptedToken = encrypt(token);
-  //const decryptedToken = decrypt(encryptedToken);
-  //console.log('index.js login: decryptedToken =', decryptedToken);
-
-  tokenMap[username] = token;
-
-  res.setHeader('Authorization', encryptedToken);
-}
 
 function handleError(res, err) {
   res.statusMessage = `${err.toString()}; ${err.detail}`;
@@ -115,8 +46,7 @@ pg.configure({
  * curl -k -XDELETE https://localhost/ice-cream/some-id
  */
 app.delete('/ice-cream/:username/:id', (req, res) => {
-  if (!authenticate(req, res)) return;
-
+  if (!auth.authorize(req, res)) return;
   const {id, username} = req.params;
 
   // This approach gives an error that it cannot determine the type of $1.
@@ -147,7 +77,7 @@ app.get('/crash', () => {
  * curl -k https://localhost/ice-cream
  */
 app.get('/ice-cream/:username', (req, res) => {
-  if (!authenticate(req, res)) return;
+  if (!auth.authorize(req, res)) return;
 
   const username = req.params.username;
   const sql =
@@ -168,7 +98,7 @@ app.get('/ice-cream/:username', (req, res) => {
  */
 //TODO: Is this needed?
 app.get('/ice-cream/:id', (req, res) => {
-  if (!authenticate(req, res)) return;
+  if (!auth.authorize(req, res)) return;
 
   const {id} = req.params;
   pg.getById('ice_creams', id)
@@ -186,7 +116,7 @@ app.get('/test', (req, res) => {
  * curl -k -XPOST https://localhost/ice-cream?flavor=vanilla
  */
 app.post('/ice-cream/:username', (req, res) => {
-  if (!authenticate(req, res)) return;
+  if (!auth.authorize(req, res)) return;
 
   const {username} = req.params;
   const {flavor} = req.query;
@@ -232,7 +162,7 @@ app.post('/ice-cream/:username', (req, res) => {
  * curl -k -XPUT https://localhost/ice-cream/some-id?flavor=some-flavor
  */
 app.put('/ice-cream/:id', (req, res) => {
-  if (!authenticate(req, res)) return;
+  if (!auth.authorize(req, res)) return;
 
   const {id} = req.params;
   const {flavor} = req.query;
@@ -258,7 +188,7 @@ app.post('/login', (req, res) => {
     return res.status(400).send();
   }
 
-  generateToken(username, req, res);
+  auth.generateToken(username, req, res);
 
   const sql =
     `select password = crypt('${password}', password) ` +
@@ -284,12 +214,9 @@ app.post('/login', (req, res) => {
  * The "Authorization" request header must be set.
  */
 app.post('/logout', (req, res) => {
-  if (!authenticate(req, res)) return;
+  if (!auth.authorize(req, res)) return;
 
-  const encryptedToken = req.get('Authorization');
-  const token = decrypt(encryptedToken);
-  const [username] = token.split('|');
-  delete tokenMap[username];
+  auth.deleteToken(req);
   res.send();
 });
 
@@ -310,7 +237,7 @@ app.post('/signup', (req, res) => {
     return res.status(400).send();
   }
 
-  generateToken(username, req, res);
+  auth.generateToken(username, req, res);
 
   // Encrypt password using a Blowfish-based ciper (bf)
   // performing 8 iterations.
