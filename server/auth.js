@@ -1,7 +1,9 @@
 const crypto = require('crypto');
 
-const algorithm = 'aes-256-ctr';
-const password = 'V01kmann';
+const SESSION_TIMEOUT = 5; // 5 seconds for testing
+
+const ALGORITHM = 'aes-256-ctr';
+const PASSWORD = 'V01kmann';
 const tokenMap = {};
 
 function authorize(req, res) {
@@ -43,7 +45,7 @@ function authorize(req, res) {
 }
 
 function decrypt(text) {
-  const decipher = crypto.createDecipher(algorithm, password);
+  const decipher = crypto.createDecipher(ALGORITHM, PASSWORD);
   return decipher.update(text, 'hex', 'utf8') + decipher.final('utf8');
 }
 
@@ -55,25 +57,25 @@ function deleteToken(req) {
 }
 
 function encrypt(text) {
-  const cipher = crypto.createCipher(algorithm, password);
+  const cipher = crypto.createCipher(ALGORITHM, PASSWORD);
   return cipher.update(text, 'utf8', 'hex') + cipher.final('hex');
 }
 
 function generateToken(username, req, res) {
   // Generate a token based username, client ip address, and expiration time.
   const expires = new Date();
-  //expires.setMinutes(expires.getMinutes() + 30); // adds 30 minutes
-  // Make token expire in 5 seconds for easier testing.
-  expires.setSeconds(expires.getSeconds() + 5);
+  expires.setSeconds(expires.getSeconds() + SESSION_TIMEOUT);
 
   const token = `${username}|${req.ip}|${expires.getTime()}`;
   const encryptedToken = encrypt(token);
-  //const decryptedToken = decrypt(encryptedToken);
-  //console.log('index.js login: decryptedToken =', decryptedToken);
 
   tokenMap[username] = token;
 
   res.setHeader('Authorization', encryptedToken);
+
+  setTimeout(
+    () => global.socket.emit('session-timeout'),
+    SESSION_TIMEOUT * 1000);
 }
 
 function deleteExpiredTokens() {

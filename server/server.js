@@ -39,9 +39,7 @@ function start() {
   server.listen(PORT, () => console.log('listening on port', PORT));
 
   const io = sio.listen(server);
-  io.on('connection', socket => {
-    socket.emit('topic', 'some data');
-  });
+  io.on('connection', socket => global.socket = socket);
 }
 
 module.exports = {setup, start};
