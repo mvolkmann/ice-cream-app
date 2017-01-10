@@ -170,6 +170,7 @@ app.post('/login', (req, res) => {
  * The "Authorization" request header must be set.
  */
 app.post('/logout', (req, res) => {
+  //TODO: Should this require authorization?
   if (!auth.authorize(req, res)) return;
 
   auth.deleteToken(req);

@@ -74,7 +74,11 @@ function generateToken(username, req, res) {
   res.setHeader('Authorization', encryptedToken);
 
   setTimeout(
-    () => global.socket.emit('session-timeout'),
+    () => {
+      //TODO: Can't do this if the logout service requires authorization.
+      //delete tokenMap[username];
+      global.socket.emit('session-timeout');
+    },
     SESSION_TIMEOUT * 1000);
 }
 
