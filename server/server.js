@@ -1,6 +1,7 @@
 const bodyParser = require('body-parser');
 const fs = require('fs');
 const https = require('https');
+const sio = require('socket.io');
 
 let server;
 
@@ -36,6 +37,11 @@ function setup(app) {
 function start() {
   const PORT = 443;
   server.listen(PORT, () => console.log('listening on port', PORT));
+
+  const io = sio.listen(server);
+  io.on('connection', socket => {
+    socket.emit('topic', 'some data');
+  });
 }
 
 module.exports = {setup, start};

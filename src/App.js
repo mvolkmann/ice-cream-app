@@ -5,11 +5,16 @@ import 'whatwg-fetch';
 import './App.css';
 
 /* eslint-disable no-invalid-this */
+/* global io */
 class App extends Component {
 
   constructor() {
     super();
     React.setState = this.setState.bind(this);
+    const socket = io('https://localhost', {secure: true});
+    socket.on('topic', msg => {
+      console.log('App.js constructor: msg =', msg);
+    });
   }
 
   state = {
