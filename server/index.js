@@ -136,7 +136,6 @@ app.put('/ice-cream/:id', (req, res) => {
  * and the content type must be "application/json".
  */
 app.post('/login', (req, res) => {
-  console.log('index.js login: req.body =', req.body);
   const {username, password} = req.body;
   if (!username) {
     res.statusMessage = 'Missing Username';

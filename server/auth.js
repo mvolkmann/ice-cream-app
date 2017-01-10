@@ -76,4 +76,14 @@ function generateToken(username, req, res) {
   res.setHeader('Authorization', encryptedToken);
 }
 
-module.exports = {authorize, generateToken, deleteToken};
+function deleteExpiredTokens() {
+  Object.keys(tokenMap).forEach(username => {
+    const encryptedToken = tokenMap[username];
+    const token = decrypt(encryptedToken);
+    const [, , timeout] = token.split('|');
+    const timeoutMs = Number(timeout);
+    if (timeoutMs < Date.now()) delete tokenMap[username];
+  });
+}
+
+module.exports = {authorize, generateToken, deleteToken, deleteExpiredTokens};
