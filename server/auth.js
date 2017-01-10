@@ -78,6 +78,7 @@ function generateToken(username, req, res) {
     SESSION_TIMEOUT * 1000);
 }
 
+//TODO: This isn't currently being used.
 function deleteExpiredTokens() {
   Object.keys(tokenMap).forEach(username => {
     const encryptedToken = tokenMap[username];
