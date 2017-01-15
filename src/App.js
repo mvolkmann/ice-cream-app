@@ -11,6 +11,7 @@ class App extends Component {
   constructor() {
     super();
     React.setState = this.setState.bind(this);
+
     const socket = io('https://localhost', {secure: true});
     socket.on('session-timeout', () => {
       alert('Your session timed out.');

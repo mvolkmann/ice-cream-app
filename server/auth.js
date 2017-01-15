@@ -1,6 +1,7 @@
 const crypto = require('crypto');
 
-const SESSION_TIMEOUT = 5; // 5 seconds for testing
+//const SESSION_TIMEOUT = 5; // 5 seconds for testing
+const SESSION_TIMEOUT = 60;
 
 const ALGORITHM = 'aes-256-ctr';
 const PASSWORD = 'V01kmann';

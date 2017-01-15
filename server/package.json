@@ -1,0 +1,21 @@
+{
+  "name": "ice-cream-server",
+  "version": "1.0.0",
+  "description": "Express server for ice cream app",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "sudo node index.js"
+  },
+  "keywords": [
+    "Express",
+    "Postgres"
+  ],
+  "author": "R. Mark Volkmann <r.mark.volkmann@gmail.com> (http://ociweb.com/mark)",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.14.0",
+    "pg": "^6.1.2",
+    "socket-io": "^1.0.0"
+  }
+}

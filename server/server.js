@@ -39,6 +39,7 @@ function start() {
   server.listen(PORT, () => console.log('listening on port', PORT));
 
   const io = sio.listen(server);
+  console.log('server.js start: io =', io);
   io.on('connection', socket => global.socket = socket);
 }
 
