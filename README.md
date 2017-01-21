@@ -12,9 +12,10 @@ To start the web server
 - npm start
 
 To run the web app
-- browse https://localhost:3000
+- browse https://localhost
 - click "ADVANCED"
 - click "Proceed to localhost (unsafe)"
+- browse https://localhost:3000
 
 To run database demo
 - cd server
