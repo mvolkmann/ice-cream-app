@@ -30,7 +30,7 @@ function setup(app) {
   };
   server = https.createServer(options, app);
   server.on('error', err => {
-    console.log(err.code === 'EACCES' ? 'must use sudo' : err);
+    console.error(err.code === 'EACCES' ? 'must use sudo' : err);
   });
 }
 
@@ -39,7 +39,7 @@ function start() {
   server.listen(PORT, () => console.log('listening on port', PORT));
 
   const io = sio.listen(server);
-  console.log('server.js start: io =', io);
+  //console.log('server.js start: io =', io);
   io.on('connection', socket => global.socket = socket);
 }
 

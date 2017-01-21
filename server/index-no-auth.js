@@ -1,4 +1,3 @@
-const auth = require('./auth');
 const express = require('express');
 const pg = require('./pg-simple');
 const server = require('./server');
@@ -24,11 +23,8 @@ pg.configure({
 
 /**
  * Deletes an ice cream flavor from a given user.
- * The "Authorization" request header must be set.
- * curl -k -XDELETE https://localhost/ice-cream/some-id
  */
 app.delete('/ice-cream/:username/:id', (req, res) => {
-  if (!auth.authorize(req, res)) return;
   const {id, username} = req.params;
 
   const sql =
@@ -39,22 +35,10 @@ app.delete('/ice-cream/:username/:id', (req, res) => {
     .catch(handleError.bind(null, res));
 });
 
-app.get('/crash', () => {
-  // Throwing an error does not kill the server.
-  //throw new Error('I am crashing!');
-
-  // Exiting the process does kill server,
-  // but nodemon will restart it after a file change.
-  process.exit(1);
-});
-
 /**
  * Retrieves all records from the ice-cream table.
- * curl -k https://localhost/ice-cream
  */
 app.get('/ice-cream/:username', (req, res) => {
-  if (!auth.authorize(req, res)) return;
-
   const username = req.params.username;
   const sql =
     'select ic.id, ic.flavor ' +
@@ -71,11 +55,8 @@ app.get('/ice-cream/:username', (req, res) => {
 /**
  * Adds an ice cream flavor for a given user,
  * creating a new record in the ice-cream table.
- * curl -k -XPOST https://localhost/ice-cream?flavor=vanilla
  */
 app.post('/ice-cream/:username', (req, res) => {
-  if (!auth.authorize(req, res)) return;
-
   const {username} = req.params;
   const {flavor} = req.query;
 
@@ -117,92 +98,11 @@ app.post('/ice-cream/:username', (req, res) => {
 
 /**
  * Updates a record in the ice-cream table by id.
- * curl -k -XPUT https://localhost/ice-cream/some-id?flavor=some-flavor
  */
 app.put('/ice-cream/:id', (req, res) => {
-  if (!auth.authorize(req, res)) return;
-
   const {id} = req.params;
   const {flavor} = req.query;
   pg.updateById('ice_creams', id, {flavor})
-    .then(() => res.send())
-    .catch(handleError.bind(null, res));
-});
-
-/**
- * Logs in a user.
- * curl -k -XPOST https://localhost/login ...
- * The username and password must be in the body
- * and the content type must be "application/json".
- */
-app.post('/login', (req, res) => {
-  const {username, password} = req.body;
-  if (!username) {
-    res.statusMessage = 'Missing Username';
-    return res.status(400).send();
-  }
-  if (!password) {
-    res.statusMessage = 'Missing Password';
-    return res.status(400).send();
-  }
-
-  auth.generateToken(username, req, res);
-
-  const sql =
-    `select password = crypt('${password}', password) as authenticated ` +
-    `from users where username='${username}'`;
-  pg.query(sql)
-    .then(result => {
-      const [row] = result.rows;
-      if (row) {
-        res.send(row.authenticated);
-      } else {
-        res.statusMessage = 'Username Not Found';
-        res.status(404).send();
-      }
-    })
-    .catch(handleError.bind(null, res));
-});
-
-/**
- * Logs out a user.
- * curl -k -XPOST https://localhost/logout ...
- * The "Authorization" request header must be set.
- */
-app.post('/logout', (req, res) => {
-  //TODO: Should this require authorization?
-  if (!auth.authorize(req, res)) return;
-
-  auth.deleteToken(req);
-  res.send();
-});
-
-/**
- * Signs up a new user.
- * curl -k -XPOST https://localhost/signup ...
- * The username and password must be in the body
- * and the content type must be "application/json".
- */
-app.post('/signup', (req, res) => {
-  const {username, password} = req.body;
-  if (!username) {
-    res.statusMessage = 'Missing Username';
-    return res.status(400).send();
-  }
-  if (!password) {
-    res.statusMessage = 'Missing Password';
-    return res.status(400).send();
-  }
-
-  auth.generateToken(username, req, res);
-
-  // Encrypt password using a Blowfish-based ciper (bf)
-  // performing 8 iterations.
-  const sql =
-    'insert into users (username, password) ' +
-    `values('${username}', crypt('${password}', gen_salt('bf', 8)))`;
-
-  pg.query(sql)
     .then(() => res.send())
     .catch(handleError.bind(null, res));
 });

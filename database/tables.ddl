@@ -1,4 +1,4 @@
-create extension pgcrypto; -- needed to use gen_random_uuid()
+create extension pgcrypto; -- needed to encrypt passwords
 
 create table ice_creams (
   id serial primary key,
