@@ -4,14 +4,12 @@ import Main from './main';
 import 'whatwg-fetch';
 import './App.css';
 
-/* eslint-disable no-invalid-this */
-/* global io */
 class App extends Component {
-
   constructor() {
     super();
     React.setState = this.setState.bind(this);
 
+    /* global io */
     const socket = io('https://localhost', {secure: true});
     socket.on('session-timeout', () => {
       alert('Your session timed out.');
@@ -32,6 +30,7 @@ class App extends Component {
   };
 
   logout = () => {
+    /* eslint-disable no-invalid-this */
     const url = `${this.state.restUrl}/logout`;
     const {token} = this.state;
     const headers = {Authorization: token};

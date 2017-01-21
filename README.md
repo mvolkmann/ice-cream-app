@@ -19,7 +19,6 @@ To run the web app
 To run database demo
 - cd server
 - node demo.js
-- NEED TO DEBUG THIS!
 
 This project was bootstrapped with
 [Create React App](https://github.com/facebookincubator/create-react-app).

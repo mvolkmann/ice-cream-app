@@ -1,7 +1,9 @@
-const auth = require('./auth');
+const auth = require('node-token-auth');
 const express = require('express');
 const pg = require('./pg-simple');
 const server = require('./server');
+
+auth.configure('aes-256-ctr', 'V01kmann', 60);
 
 const app = express();
 server.setup(app);
