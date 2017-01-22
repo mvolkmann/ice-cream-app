@@ -1,6 +1,6 @@
 const auth = require('node-token-auth');
 const express = require('express');
-const pg = require('./pg-simple');
+const pg = require('postgresql-easy');
 const server = require('./server');
 
 // Configure the algorithm and password used to encrypt auth tokens

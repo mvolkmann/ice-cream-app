@@ -3,7 +3,7 @@ const cookieParser = require('cookie-parser');
 const express = require('express');
 const fs = require('fs');
 const https = require('https');
-const pg = require('./pg-simple');
+const pg = require('postgresql-easy');
 const session = require('express-session');
 
 const app = express();

@@ -1,4 +1,4 @@
-const pg = require('./pg-simple');
+const pg = require('postgresql-easy');
 
 const tableName = 'ice_creams';
 const flavors = ['vanilla', 'chocolate', 'strawberry'];
