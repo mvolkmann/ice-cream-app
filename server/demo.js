@@ -1,16 +1,28 @@
-const pg = require('postgresql-easy');
+const PgConnection = require('postgresql-easy');
 
 const tableName = 'ice_creams';
 const flavors = ['vanilla', 'chocolate', 'strawberry'];
 let ids;
 
 // Configure a connection to the database.
-pg.configure({
+const pg = new PgConnection({
   database: 'ice_cream'
 });
 
-// Delete all rows from the ice_cream table.
-pg.deleteAll(tableName)
+/*
+pg.getAll(tableName)
+  .then(result => {
+    for (const row of result.rows) {
+      console.log(row.id, row.flavor);
+    }
+  })
+*/
+
+// Delete all rows from these tables:
+// user_ice_creams, users, and ice_cream.
+pg.deleteAll('user_ice_creams')
+  .then(() => pg.deleteAll('users'))
+  .then(() => pg.deleteAll(tableName))
   // Insert three new rows corresponding to vanilla, chocolate, and strawberry.
   .then(() => Promise.all(
     flavors.map(f => pg.insert(tableName, {flavor: f}))
@@ -32,32 +44,10 @@ pg.deleteAll(tableName)
       console.log(row.id, row.flavor);
     }
   })
+
   // Disconnect from the database.
   .then(() => pg.disconnect())
   // Catch and report any errors that occur in the previous steps.
   .catch(err => {
     throw err;
   });
-
-/*
-// Alternate approach using async/await instead of promises.
-try {
-  await pg.connect(dbUrl);
-  await pg.deleteAll(tableName);
-  flavors.map(f => {
-    const result = await pg.insert(tableName, ['flavor'], [f]));
-    const {id} = result.rows[0];
-    console.log('inserted record with id', id);
-    ids.push(id);
-  })
-  await pg.deleteById(tableName, ids[0]);
-  await pg.updateById(tableName, ids[1], ['flavor'], ['chocolate chip']);
-  const result = await pg.getAll(tableName);
-  for (const row of result.rows) {
-    console.log(row.id, row.flavor);
-  }
-  await pg.disconnect();
-} catch (e) {
-  console.error(e);
-}
-*/

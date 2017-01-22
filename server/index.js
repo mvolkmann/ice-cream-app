@@ -1,6 +1,6 @@
 const auth = require('node-token-auth');
 const express = require('express');
-const pg = require('postgresql-easy');
+const PgConnection = require('postgresql-easy');
 const server = require('./server');
 
 // Configure the algorithm and password used to encrypt auth tokens
@@ -15,8 +15,7 @@ function handleError(res, err) {
   res.status(500).send();
 }
 
-// Must call this before other pg methods.
-pg.configure({
+const pg = new PgConnection({
   database: 'ice_cream' // defaults to username
   //host: 'localhost', // default
   //idleTimeoutMillis: 30000, // before a client is closed (default is 30000)

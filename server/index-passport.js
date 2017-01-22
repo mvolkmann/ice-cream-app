@@ -3,7 +3,7 @@ const cookieParser = require('cookie-parser');
 const express = require('express');
 const fs = require('fs');
 const https = require('https');
-const pg = require('postgresql-easy');
+const PgConnection = require('postgresql-easy');
 const session = require('express-session');
 
 const app = express();
@@ -19,6 +19,16 @@ app.use((req, res, next) => {
     'Origin, X-Requested-With, Content-Type, Accept');
   res.header('Access-Control-Allow-Methods', 'GET,DELETE,POST,PUT');
   next();
+});
+
+const pg = new PgConnection({
+  database: 'web-app-steps' // defaults to username
+  //host: 'localhost', // default
+  //idleTimeoutMillis: 30000, // before a client is closed (default is 30000)
+  //max: 10, // max clients in pool (default is 10)
+  //password: '', // not needed in this example
+  //port: 5432, // the default
+  //user: 'Mark' // not needed in this example
 });
 
 // Configure use of passport.
@@ -99,17 +109,6 @@ app.post('/login',
     })(req, res, next);
   }
 );
-
-// Must call this before other pg methods.
-pg.configure({
-  database: 'web-app-steps' // defaults to username
-  //host: 'localhost', // default
-  //idleTimeoutMillis: 30000, // before a client is closed (default is 30000)
-  //max: 10, // max clients in pool (default is 10)
-  //password: '', // not needed in this example
-  //port: 5432, // the default
-  //user: 'Mark' // not needed in this example
-});
 
 app.get('/test', (req, res) => {
   res.send('success');
