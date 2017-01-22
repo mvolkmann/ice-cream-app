@@ -1,13 +1,27 @@
 const pg = require('pg');
-const debug = false;
-
+let debug = false;
 let pool;
 
 /**
- * Configures a connection pool.
+ * Configures a PostgreSQLconnection pool.
+ * This must be called before the other functions.
+ * If not, a "pool not configured" error will be thrown.
+ *
+ * The config object can contain these properties:
+ *   database: the name of the database to use
+ *   host: defaults to localhost
+ *   idleTimeoutMillis: time before a client is closed; default is 30000
+ *   max: maximum number of clients in pool; default is 10
+ *   password: if database requires authentication
+ *   port: defaults to 5432
+ *   user: if database requires authentication
+ *   debug: true to output messages describing each action; defaults to false
+ *
+ * The only one of these that is always required is "database".
  */
 function configure(config) {
   pool = new pg.Pool(config);
+  debug = config.debug;
 }
 
 /**
@@ -36,6 +50,7 @@ function deleteAll(tableName) {
 
 /**
  * Deletes a record from a given table by id.
+ * The requires the table to have a column named "id".
  */
 function deleteById(tableName, id) {
   const sql = `delete from ${tableName} where id=${id}`;
@@ -62,6 +77,7 @@ function getAll(tableName) {
 
 /**
  * Gets a record from a given table by id.
+ * The requires the table to have a column named "id".
  */
 function getById(tableName, id) {
   const sql = `select * from ${tableName} where id=${id}`;
@@ -71,6 +87,8 @@ function getById(tableName, id) {
 
 /**
  * Inserts a record into a given table.
+ * The keys of obj must be column names
+ * and their values are the values to insert.
  */
 function insert(tableName, obj) {
   const keys = Object.keys(obj);
@@ -105,6 +123,7 @@ function query(sql, ...params) {
 
 /**
  * Updates a record in a given table by id.
+ * The requires the table to have a column named "id".
  */
 function updateById(tableName, id, obj) {
   const sets = Object.keys(obj).map(key => {

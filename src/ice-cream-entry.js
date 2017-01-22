@@ -7,7 +7,7 @@ const IceCreamEntry = ({addCb, changeCb, flavor}) =>
   >
     <label>Flavor</label>
     <input type="text" autoFocus onChange={changeCb} value={flavor}/>
-    {/* using unicode heavy plus */}
+    {/* using unicode heavy plus for button */}
     <button onClick={() => addCb(flavor)}>&#x2795;</button>
   </form>;
 

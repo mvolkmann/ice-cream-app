@@ -3,7 +3,9 @@ const express = require('express');
 const pg = require('./pg-simple');
 const server = require('./server');
 
-auth.configure('aes-256-ctr', 'V01kmann', 60);
+// Configure the algorithm and password used to encrypt auth tokens
+// and set the session timeout in minutes.
+auth.configure('aes-256-ctr', 'V01kmann', 1);
 
 const app = express();
 server.setup(app);
@@ -31,6 +33,7 @@ pg.configure({
  */
 app.delete('/ice-cream/:username/:id', (req, res) => {
   if (!auth.authorize(req, res)) return;
+
   const {id, username} = req.params;
 
   const sql =
@@ -172,7 +175,6 @@ app.post('/login', (req, res) => {
  * The "Authorization" request header must be set.
  */
 app.post('/logout', (req, res) => {
-  //TODO: Should this require authorization?
   if (!auth.authorize(req, res)) return;
 
   auth.deleteToken(req);

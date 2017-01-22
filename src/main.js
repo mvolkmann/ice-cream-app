@@ -2,7 +2,6 @@ import IceCreamEntry from './ice-cream-entry';
 import IceCreamList from './ice-cream-list';
 import React, {Component} from 'react';
 import 'whatwg-fetch';
-import './App.css';
 
 const {object, string} = React.PropTypes;
 
@@ -11,16 +10,11 @@ function changeFlavor(event) {
 }
 
 function handleError(url, res) {
-  const {status} = res;
-  console.log('main.js handleErr: status =', status);
-  if (status === 440) {
-    React.setState({error: 'Session Timeout', route: 'login'});
-  } else {
-    React.setState({error: res.message});
-  }
+  React.setState(res.status === 440 ?
+    {error: 'Session Timeout', route: 'login'} :
+    {error: res.message});
 }
 
-/* eslint-disable no-invalid-this */
 class Main extends Component {
 
   static propTypes = {
@@ -32,8 +26,14 @@ class Main extends Component {
     username: string.isRequired
   };
 
+  /**
+   * Gets the current list of ice cream flavors
+   * liked by the current user.
+   */
   componentDidMount() {
     const {restUrl, token, username} = this.props;
+
+    // This header is used in all REST calls.
     this.headers = {Authorization: token};
 
     const url = `${restUrl}/ice-cream/${username}`;
@@ -43,8 +43,6 @@ class Main extends Component {
         return res.ok ? res.json() : null;
       })
       .then(iceCreams => {
-        if (!iceCreams) return;
-
         const iceCreamMap = {};
         for (const iceCream of iceCreams) {
           iceCreamMap[iceCream.id] = iceCream.flavor;
@@ -54,6 +52,12 @@ class Main extends Component {
       .catch(handleError.bind(null, url));
   }
 
+  /* eslint-disable no-invalid-this */
+
+  /**
+   * Adds an ice cream flavor to the list
+   * of those liked by the current user.
+   */
   addIceCream = flavor => {
     const {restUrl, username} = this.props;
     const url = `${restUrl}/ice-cream/${username}?flavor=${flavor}`;
@@ -65,6 +69,8 @@ class Main extends Component {
       .then(id => {
         if (!id) return;
 
+        // Now that it has been successfully added to the database,
+        // add it in the UI.
         id = Number(id);
         const {iceCreamMap} = this.props;
         iceCreamMap[id] = flavor;
@@ -73,12 +79,18 @@ class Main extends Component {
       .catch(handleError.bind(null, url));
   };
 
+  /**
+   * Deletes an ice cream flavor from the list
+   * of those liked by the current user.
+   */
   deleteIceCream = id => {
     const {restUrl, username} = this.props;
     const url = `${restUrl}/ice-cream/${username}/${id}`;
     fetch(url, {method: 'DELETE', headers: this.headers})
       .then(res => {
         if (res.ok) {
+          // Now that it has been successfully deleted from the database,
+          // delete it from the UI.
           const {iceCreamMap} = this.props;
           delete iceCreamMap[id];
           React.setState({iceCreamMap});

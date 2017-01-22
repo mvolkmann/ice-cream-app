@@ -4,7 +4,6 @@
 
 .App button {
   background-color: white;
-
   border: solid lightgray 1px;
   border-radius: 4px;
   height: 27px; /* matches input height */

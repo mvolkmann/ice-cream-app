@@ -2,7 +2,7 @@ import React from 'react';
 
 const IceCreamRow = ({deleteCb, flavor, id}) =>
   <li className="ice-cream-row">
-    {/* using unicode heavy x */}
+    {/* using unicode heavy x for button */}
     <button onClick={() => deleteCb(id)}>&#x2716;</button>
     {flavor}
   </li>;

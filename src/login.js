@@ -69,7 +69,7 @@ class Login extends Component {
       .then(res => {
         token = res.headers.get('Authorization');
         if (!res.ok) error = true;
-        return res.text();
+        return res.text(); // returns a promise
       })
       .then(text => {
         if (error) {
@@ -90,6 +90,10 @@ class Login extends Component {
     const {password, username} = this.props;
     const canSubmit = username && password;
 
+    // We are handling sending the username and password
+    // to a REST service above, so we don't want
+    // the HTML form to submit anything for us.
+    // That is the reason for the call to preventDefault.
     return (
       <form className="login-form"
         onSubmit={event => event.preventDefault()}>
