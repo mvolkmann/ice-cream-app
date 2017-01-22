@@ -78,7 +78,12 @@ class Login extends Component {
           }
           React.setState({error: text});
         } else { // successful signup
-          React.setState({error: null, route: 'main', token, username});
+          React.setState({
+            authenticated: true,
+            error: null,
+            route: 'main',
+            token, username
+          });
         }
       })
       .catch(res => {
