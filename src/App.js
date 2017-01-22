@@ -7,8 +7,18 @@ import './App.css';
 class App extends Component {
   constructor() {
     super();
+
+    // Redux is a popular library for managing state in a React application.
+    // This application, being somewhat small, opts for a simpler approach
+    // where the top-most component manages all of the state.
+    // Placing a bound version of the setState method on the React object
+    // allows other components to call it in order to modify state.
+    // Each call causes the UI to re-render.
     React.setState = this.setState.bind(this);
 
+    // This gets a socket.io connection from the server
+    // and registers for "session-timeout" events.
+    // If one is received, the users is logged out.
     /* global io */
     const socket = io('https://localhost', {secure: true});
     socket.on('session-timeout', () => {
@@ -17,31 +27,42 @@ class App extends Component {
     });
   }
 
+  // This is the initial state of the application.
   state = {
     authenticated: false,
     error: '',
     flavor: '',
     iceCreamMap: {},
-    password: 'foobar',
+    password: '',
     restUrl: 'https://localhost',
-    route: 'login',
+    route: 'login', // controls the current page
     token: '',
-    username: 'mvolkmann'
+    username: ''
   };
 
+  /**
+   * Sends a logout POST request to the server
+   * and goes to the login page.
+   */
   logout = () => {
     /* eslint-disable no-invalid-this */
     const url = `${this.state.restUrl}/logout`;
-    const {token} = this.state;
-    const headers = {Authorization: token};
+    const headers = {Authorization: this.state.token};
     fetch(url, {method: 'POST', headers})
-      .then(() => React.setState({route: 'login'}))
+      .then(() => React.setState({
+        authenticated: false,
+        route: 'login',
+        password: '',
+        username: ''
+      }))
       .catch();
   };
 
   render() {
+    // Use destructuring to extract data from the state object.
     const {
-      error, flavor, iceCreamMap, password, restUrl, route, token, username
+      authenticated, error, flavor, iceCreamMap,
+      password, restUrl, route, token, username
     } = this.state;
 
     return (
@@ -50,19 +71,22 @@ class App extends Component {
           <img className="header-img" src="ice-cream.png" alt="ice cream"/>
           Ice cream, we all scream for it!
           {
-            username ?
+            authenticated ?
               <button onClick={this.logout}>Log out</button> :
               null
           }
         </header>
         <div className="App-body">
           {
-          route === 'login' ?
-            <Login
-              username={username}
-              password={password}
-              restUrl={restUrl}
-            /> :
+            // This is an alternative to controlling routing to pages
+            // that is far simpler than more full-blown solutions
+            // like react-router.
+            route === 'login' ?
+              <Login
+                username={username}
+                password={password}
+                restUrl={restUrl}
+              /> :
             route === 'main' ?
               <Main
                 flavor={flavor}
@@ -74,6 +98,7 @@ class App extends Component {
               <div>Unknown route {route}</div>
           }
           {
+            // If an error has occurred, render it at the bottom of any page.
             error ? <div className="error">{error}</div> : null
           }
         </div>

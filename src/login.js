@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import 'whatwg-fetch';
+import 'whatwg-fetch'; // sends HTTP requests
 
 const {string} = React.PropTypes;
 
@@ -20,11 +20,13 @@ class Login extends Component {
     username: string.isRequired
   };
 
+  // This is called when the "Log In" button is pressed.
   onLogin = () => {
     const {password, restUrl, username} = this.props;
     let token;
     const url = `${restUrl}/login`;
 
+    // Send username and password to login REST service.
     fetch(url, {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
@@ -32,19 +34,27 @@ class Login extends Component {
     })
       .then(res => {
         token = res.headers.get('Authorization');
-        return res.text();
+        return res.text(); // returns a promise
       })
       .then(text => {
         const authenticated = text === 'true';
         React.setState(authenticated ?
-          {error: null, route: 'main', token, username} :
-          {error: 'Invalid username or password.'});
+          {
+            authenticated: true,
+            error: null, // clear previous error
+            route: 'main',
+            token
+          } :
+          {
+            error: 'Invalid username or password.'
+          });
       })
       .catch(res => {
         React.setState({error: `${url}; ${res.message}`});
       });
   }
 
+  // This is called when the "Signup" button is pressed.
   onSignup = () => {
     const {password, restUrl, username} = this.props;
     let token;
