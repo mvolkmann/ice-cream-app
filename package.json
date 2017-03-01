@@ -12,7 +12,8 @@
     "body-parser": "^1.15.2",
     "node-token-auth": "^1.0.0",
     "react": "^15.4.2",
-    "react-dom": "^15.4.2"
+    "react-dom": "^15.4.2",
+    "socket.io-client": "^1.7.3"
   },
   "scripts": {
     "start": "react-scripts start",
