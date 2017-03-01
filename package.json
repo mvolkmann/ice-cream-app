@@ -3,10 +3,13 @@
   "version": "0.1.0",
   "private": true,
   "devDependencies": {
+    "enzyme": "^2.7.1",
     "eslint": "3.13.1",
     "eslint-plugin-flowtype": "2.29.2",
     "eslint-plugin-react": "6.9.0",
-    "react-scripts": "0.8.4"
+    "react-addons-test-utils": "^15.4.2",
+    "react-scripts": "0.8.4",
+    "react-test-renderer": "*"
   },
   "dependencies": {
     "body-parser": "^1.15.2",
