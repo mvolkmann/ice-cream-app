@@ -1,4 +1,6 @@
 import React, {Component} from 'react';
+import io from 'socket.io-client';
+
 import Login from './login';
 import Main from './main';
 import 'whatwg-fetch';
