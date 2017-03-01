@@ -15,6 +15,7 @@
     "react-dom": "^15.4.2"
   },
   "scripts": {
+    "coverage": "npm test -- --coverage",
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test --env=jsdom",
