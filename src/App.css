@@ -99,3 +99,9 @@ input {
 .row.submit {
   justify-content: center;
 }
+
+#footer
+{
+    position: fixed;
+    bottom: 0px;
+}

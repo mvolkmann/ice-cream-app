@@ -1,4 +1,6 @@
 import React, {Component} from 'react';
+import io from 'socket.io-client';
+
 import Login from './login';
 import Main from './main';
 import 'whatwg-fetch';
@@ -101,6 +103,7 @@ class App extends Component {
             // If an error has occurred, render it at the bottom of any page.
             error ? <div className="error">{error}</div> : null
           }
+          <div className="footer" id="footer">Snapshot</div>
         </div>
       </div>
     );
