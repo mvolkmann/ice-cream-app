@@ -33,6 +33,7 @@ const pg = new PgConnection({
 app.delete('/ice-cream/:username/:id', (req, res) => {
   if (!auth.authorize(req, res)) return;
 
+  // id is the id of the ice cream flavor to be deleted.
   const {id, username} = req.params;
 
   const sql =
@@ -40,7 +41,7 @@ app.delete('/ice-cream/:username/:id', (req, res) => {
     'where username=$1 and ice_cream_id=$2';
   pg.query(sql, username, id)
     .then(() => res.send())
-    .catch(handleError.bind(null, res));
+    .catch(() => handleError(res));
 });
 
 app.get('/crash', () => {
@@ -53,8 +54,8 @@ app.get('/crash', () => {
 });
 
 /**
- * Retrieves all records from the ice-cream table.
- * curl -k https://localhost/ice-cream
+ * Retrieves all ice cream ids and flavors
+ * associated with a given user.
  */
 app.get('/ice-cream/:username', (req, res) => {
   if (!auth.authorize(req, res)) return;
@@ -69,13 +70,15 @@ app.get('/ice-cream/:username', (req, res) => {
     .then(result => {
       res.json(result.rows);
     })
-    .catch(handleError.bind(null, res));
+    .catch(() => handleError(res));
 });
 
 /**
- * Adds an ice cream flavor for a given user,
+ * Adds an ice cream flavor to a given user,
  * creating a new record in the ice-cream table.
- * curl -k -XPOST https://localhost/ice-cream?flavor=vanilla
+ * The URL will look like /ice-cream/some-user?flavor=some-flavor.
+ * The response will contain the id of newly created user_ice_creams row.
+ * curl -k -XPOST https://localhost/ice-cream/some-user?flavor=vanilla
  */
 app.post('/ice-cream/:username', (req, res) => {
   if (!auth.authorize(req, res)) return;
@@ -89,7 +92,7 @@ app.post('/ice-cream/:username', (req, res) => {
       'values ($1, $2)';
     pg.query(sql, username, iceCreamId)
       .then(() => res.send(String(iceCreamId)))
-      .catch(handleError.bind(null, res));
+      .catch(() => handleError(res));
   }
 
   // Get the id of the flavor if it already exists.
@@ -113,10 +116,10 @@ app.post('/ice-cream/:username', (req, res) => {
               handleError(res, 'failed to create new flavor');
             }
           })
-          .catch(handleError.bind(null, res));
+          .catch(() => handleError(res));
       }
     })
-    .catch(handleError.bind(null, res));
+    .catch(() => handleError(res));
 });
 
 /**
@@ -130,7 +133,7 @@ app.put('/ice-cream/:id', (req, res) => {
   const {flavor} = req.query;
   pg.updateById('ice_creams', id, {flavor})
     .then(() => res.send())
-    .catch(handleError.bind(null, res));
+    .catch(() => handleError(res));
 });
 
 /**
@@ -165,7 +168,7 @@ app.post('/login', (req, res) => {
         res.status(404).send();
       }
     })
-    .catch(handleError.bind(null, res));
+    .catch(() => handleError(res));
 });
 
 /**
@@ -207,7 +210,7 @@ app.post('/signup', (req, res) => {
 
   pg.query(sql)
     .then(() => res.send())
-    .catch(handleError.bind(null, res));
+    .catch(() => handleError(res));
 });
 
 server.start();

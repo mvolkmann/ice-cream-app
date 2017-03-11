@@ -4,6 +4,11 @@ import Main from './main';
 import 'whatwg-fetch';
 import './App.css';
 
+// This was added to allow the client to listen to
+// socket.io events emitted from the server.  It is used to
+// proactively terminate sessions when the session timeout expires.
+import io from 'socket.io-client';
+
 class App extends Component {
   constructor() {
     super();
