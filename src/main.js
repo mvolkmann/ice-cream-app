@@ -27,75 +27,74 @@ class Main extends Component {
    * Gets the current list of ice cream flavors
    * liked by the current user.
    */
-  componentDidMount() {
+  async componentDidMount() {
     const {restUrl, token, username} = this.props;
 
     // This header is used in all REST calls.
     this.headers = {Authorization: token};
 
     const url = `${restUrl}/ice-cream/${username}`;
-    fetch(url, {headers: this.headers})
-      .then(res => {
-        if (!res.ok) handleError(url, res);
-        return res.ok ? res.json() : null;
-      })
-      .then(iceCreams => {
-        const iceCreamMap = {};
-        for (const iceCream of iceCreams) {
-          iceCreamMap[iceCream.id] = iceCream.flavor;
-        }
-        React.setState({iceCreamMap});
-      })
-      .catch(handleError.bind(null, url));
-  }
+    let res;
+    try {
+      res = await fetch(url, {headers: this.headers});
+      if (!res.ok) return handleError(url, res);
 
-  /* eslint-disable no-invalid-this */
+      const iceCreams = await res.json();
+      const iceCreamMap = {};
+      for (const iceCream of iceCreams) {
+        iceCreamMap[iceCream.id] = iceCream.flavor;
+      }
+      React.setState({iceCreamMap});
+    } catch (e) {
+      handleError(url, res);
+    }
+  }
 
   /**
    * Adds an ice cream flavor to the list
    * of those liked by the current user.
    */
-  addIceCream = flavor => {
+  addIceCream = async flavor => {
     const {restUrl, username} = this.props;
     const url = `${restUrl}/ice-cream/${username}?flavor=${flavor}`;
-    fetch(url, {method: 'POST', headers: this.headers})
-      .then(res => {
-        if (!res.ok) handleError(url, res);
-        return res.ok ? res.text() : null;
-      })
-      .then(id => {
-        if (!id) return;
+    let res;
+    try {
+      res = await fetch(url, {method: 'POST', headers: this.headers});
+      if (!res.ok) return handleError(url, res);
+      let id = await res.text();
+      if (!id) return;
 
-        // Now that it has been successfully added to the database,
-        // add it in the UI.
-        id = Number(id);
-        const {iceCreamMap} = this.props;
-        iceCreamMap[id] = flavor;
-        React.setState({flavor: '', iceCreamMap});
-      })
-      .catch(handleError.bind(null, url));
+      // Now that it has been successfully added to the database,
+      // add it in the UI.
+      id = Number(id);
+      const {iceCreamMap} = this.props;
+      iceCreamMap[id] = flavor;
+      React.setState({flavor: '', iceCreamMap});
+    } catch (e) {
+      handleError(url, res);
+    }
   };
 
   /**
    * Deletes an ice cream flavor from the list
    * of those liked by the current user.
    */
-  deleteIceCream = id => {
+  deleteIceCream = async id => {
     const {restUrl, username} = this.props;
     const url = `${restUrl}/ice-cream/${username}/${id}`;
-    fetch(url, {method: 'DELETE', headers: this.headers})
-      .then(res => {
-        if (res.ok) {
-          // Now that it has been successfully deleted from the database,
-          // delete it from the UI.
-          const {iceCreamMap} = this.props;
-          delete iceCreamMap[id];
-          React.setState({iceCreamMap});
-        } else {
-          handleError(url, res);
-        }
-      })
-      .catch(handleError.bind(null, url));
+    let res;
+    try {
+      res = await fetch(url, {method: 'DELETE', headers: this.headers});
+      if (!res.ok) return handleError(url, res);
+
+      // Now that it has been successfully deleted from the database,
+      // delete it from the UI.
+      const {iceCreamMap} = this.props;
+      delete iceCreamMap[id];
+      React.setState({iceCreamMap});
+    } catch (e) {
+      handleError(url, res);
+    }
   };
 
   render() {

@@ -4,9 +4,9 @@ import Main from './main';
 import 'whatwg-fetch';
 import './App.css';
 
-// This was added to allow the client to listen to
-// socket.io events emitted from the server.  It is used to
-// proactively terminate sessions when the session timeout expires.
+// This allows the client to listen to socket.io events
+// emitted from the server.  It is used to proactively
+// terminate sessions when the session timeout expires.
 import io from 'socket.io-client';
 
 class App extends Component {
@@ -49,18 +49,20 @@ class App extends Component {
    * Sends a logout POST request to the server
    * and goes to the login page.
    */
-  logout = () => {
-    /* eslint-disable no-invalid-this */
+  logout = async () => {
     const url = `${this.state.restUrl}/logout`;
     const headers = {Authorization: this.state.token};
-    fetch(url, {method: 'POST', headers})
-      .then(() => React.setState({
+    try {
+      await fetch(url, {method: 'POST', headers});
+      React.setState({
         authenticated: false,
         route: 'login',
         password: '',
         username: ''
-      }))
-      .catch();
+      });
+    } catch (e) {
+      React.setState({error: e.toString()});
+    }
   };
 
   render() {
