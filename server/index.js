@@ -210,8 +210,6 @@ app.post('/signup', async (req, res) => {
     return res.status(400).send();
   }
 
-  auth.generateToken(username, req, res);
-
   // Encrypt password using a Blowfish-based ciper (bf)
   // performing 8 iterations.
   const sql = `
@@ -220,6 +218,7 @@ app.post('/signup', async (req, res) => {
 
   try {
     await pg.query(sql);
+    auth.generateToken(username, req, res);
     res.send();
   } catch (e) {
     handleError(res, e);
