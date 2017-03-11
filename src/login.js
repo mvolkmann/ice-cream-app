@@ -1,4 +1,5 @@
 import React, {Component, PropTypes as t} from 'react';
+import 'whatwg-fetch';
 
 function onChangePassword(event) {
   React.setState({password: event.target.value});
@@ -8,7 +9,6 @@ function onChangeUsername(event) {
   React.setState({username: event.target.value});
 }
 
-/* eslint-disable no-invalid-this */
 class Login extends Component {
   static propTypes = {
     password: t.string.isRequired,
@@ -28,7 +28,7 @@ class Login extends Component {
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({username, password})
       });
-      if (res.ok) {
+      if (res.ok) { // successful login
         const token = res.headers.get('Authorization');
         const text = await res.text(); // returns a promise
         const authenticated = text === 'true';
@@ -43,7 +43,7 @@ class Login extends Component {
           {
             error: 'Invalid username or password'
           });
-      } else {
+      } else { // unsuccessful login
         const msg = /ECONNREFUSED/.test(res.statusText) ?
           'Failed to connect to database' :
           res.statusText;
