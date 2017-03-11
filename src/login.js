@@ -1,7 +1,4 @@
-import React, {Component} from 'react';
-import 'whatwg-fetch'; // sends HTTP requests
-
-const {string} = React.PropTypes;
+import React, {Component, PropTypes as t} from 'react';
 
 function onChangePassword(event) {
   React.setState({password: event.target.value});
@@ -13,32 +10,30 @@ function onChangeUsername(event) {
 
 /* eslint-disable no-invalid-this */
 class Login extends Component {
-
   static propTypes = {
-    password: string.isRequired,
-    restUrl: string.isRequired,
-    username: string.isRequired
+    password: t.string.isRequired,
+    restUrl: t.string.isRequired,
+    username: t.string.isRequired
   };
 
   // This is called when the "Log In" button is pressed.
-  onLogin = () => {
+  onLogin = async () => {
     const {password, restUrl, username} = this.props;
-    let token;
     const url = `${restUrl}/login`;
 
-    // Send username and password to login REST service.
-    fetch(url, {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({username, password})
-    })
-      .then(res => {
-        token = res.headers.get('Authorization');
-        return res.text(); // returns a promise
-      })
-      .then(text => {
+    try {
+      // Send username and password to login REST service.
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({username, password})
+      });
+      if (res.ok) {
+        const token = res.headers.get('Authorization');
+        const text = await res.text(); // returns a promise
         const authenticated = text === 'true';
-        React.setState(authenticated ?
+        React.setState(
+          authenticated ?
           {
             authenticated: true,
             error: null, // clear previous error
@@ -46,49 +41,50 @@ class Login extends Component {
             token
           } :
           {
-            error: 'Invalid username or password.'
+            error: 'Invalid username or password'
           });
-      })
-      .catch(res => {
-        React.setState({error: `${url}; ${res.message}`});
-      });
+      } else {
+        const msg = /ECONNREFUSED/.test(res.statusText) ?
+          'Failed to connect to database' :
+          res.statusText;
+        React.setState({error: msg});
+      }
+    } catch (e) {
+      React.setState({error: `${url}; ${e.message}`});
+    }
   }
 
   // This is called when the "Signup" button is pressed.
-  onSignup = () => {
+  onSignup = async () => {
     const {password, restUrl, username} = this.props;
-    let token;
     const url = `${restUrl}/signup`;
-    let error = false;
 
-    fetch(url, {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({username, password})
-    })
-      .then(res => {
-        token = res.headers.get('Authorization');
-        if (!res.ok) error = true;
-        return res.text(); // returns a promise
-      })
-      .then(text => {
-        if (error) {
-          if (/duplicate key/.test(text)) {
-            text = `User ${username} already exists.`;
-          }
-          React.setState({error: text});
-        } else { // successful signup
-          React.setState({
-            authenticated: true,
-            error: null,
-            route: 'main',
-            token, username
-          });
-        }
-      })
-      .catch(res => {
-        React.setState({error: `${url}; ${res.message}`});
+    try {
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({username, password})
       });
+
+      if (res.ok) { // successful signup
+        const token = res.headers.get('Authorization');
+        React.setState({
+          authenticated: true,
+          error: null, // clear previous error
+          route: 'main',
+          token,
+          username
+        });
+      } else { // unsuccessful signup
+        let text = res.statusText;
+        if (/duplicate key/.test(text)) {
+          text = `User ${username} already exists`;
+        }
+        React.setState({error: text});
+      }
+    } catch (e) {
+      React.setState({error: `${url}; ${e.message}`});
+    }
   }
 
   render() {

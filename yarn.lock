@@ -3722,9 +3722,9 @@ node-pre-gyp@^0.6.29:
     tar "~2.2.1"
     tar-pack "~3.3.0"
 
-node-token-auth@^1.0.0:
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/node-token-auth/-/node-token-auth-1.0.0.tgz#2c277663f273f2dbf9825fc100318f53e4872cbb"
+node-token-auth@^1.0.2:
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/node-token-auth/-/node-token-auth-1.0.2.tgz#969631e0023497716717a05caadf64555c9d95a7"
 
 nopt@3.x, nopt@~3.0.6:
   version "3.0.6"
@@ -3750,8 +3750,8 @@ normalize-range@^0.1.2:
   resolved "https://registry.yarnpkg.com/normalize-range/-/normalize-range-0.1.2.tgz#2d10c06bdfd312ea9777695a4d28439456b75942"
 
 normalize-url@^1.4.0:
-  version "1.9.0"
-  resolved "https://registry.yarnpkg.com/normalize-url/-/normalize-url-1.9.0.tgz#c2bb50035edee62cd81edb2d45da68dc25e3423e"
+  version "1.9.1"
+  resolved "https://registry.yarnpkg.com/normalize-url/-/normalize-url-1.9.1.tgz#2cc0d66b31ea23036458436e3620d85954c66c3c"
   dependencies:
     object-assign "^4.0.1"
     prepend-http "^1.0.0"

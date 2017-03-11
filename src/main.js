@@ -1,9 +1,7 @@
 import IceCreamEntry from './ice-cream-entry';
 import IceCreamList from './ice-cream-list';
-import React, {Component} from 'react';
+import React, {Component, PropTypes as t} from 'react';
 import 'whatwg-fetch';
-
-const {object, string} = React.PropTypes;
 
 function changeFlavor(event) {
   React.setState({flavor: event.target.value});
@@ -18,12 +16,11 @@ function handleError(url, res) {
 class Main extends Component {
 
   static propTypes = {
-    flavor: string.isRequired,
-    // eslint-disable-next-line react/forbid-prop-types
-    iceCreamMap: object.isRequired,
-    restUrl: string.isRequired,
-    token: string.isRequired,
-    username: string.isRequired
+    flavor: t.string.isRequired,
+    iceCreamMap: t.object.isRequired,
+    restUrl: t.string.isRequired,
+    token: t.string.isRequired,
+    username: t.string.isRequired
   };
 
   /**

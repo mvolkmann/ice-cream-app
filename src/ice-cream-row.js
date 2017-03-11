@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {PropTypes as t} from 'react';
 
 const IceCreamRow = ({deleteCb, flavor, id}) =>
   <li className="ice-cream-row">
@@ -7,11 +7,10 @@ const IceCreamRow = ({deleteCb, flavor, id}) =>
     {flavor}
   </li>;
 
-const {func, string} = React.PropTypes;
 IceCreamRow.propTypes = {
-  deleteCb: func.isRequired,
-  flavor: string,
-  id: string
+  deleteCb: t.func.isRequired,
+  flavor: t.string,
+  id: t.string
 };
 
 export default IceCreamRow;

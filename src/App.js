@@ -73,7 +73,7 @@ class App extends Component {
     return (
       <div className="App">
         <header>
-          <img className="header-img" src="ice-cream.png" alt="ice cream"/>
+          <img className="header-img" src="ice-cream.png" alt="ice cream" />
           Ice cream, we all scream for it!
           {
             authenticated ?

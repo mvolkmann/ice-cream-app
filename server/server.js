@@ -21,14 +21,17 @@ function setup(app) {
     next();
   });
 
+  // The "extended" option of bodyParser enables parsing of objects and arrays.
   app.use(bodyParser.json({extended: true}));
 
+  // Enable use of HTTPS.
   const options = {
     key: fs.readFileSync('key.pem'),
     cert: fs.readFileSync('cert.pem'),
     passphrase: 'icecream'
   };
   server = https.createServer(options, app);
+
   server.on('error', err => {
     console.error(err.code === 'EACCES' ? 'must use sudo' : err);
   });
@@ -39,7 +42,6 @@ function start() {
   server.listen(PORT, () => console.log('listening on port', PORT));
 
   const io = sio.listen(server);
-  //console.log('server.js start: io =', io);
   io.on('connection', socket => global.socket = socket);
 }
 
