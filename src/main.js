@@ -13,6 +13,23 @@ function handleError(url, res) {
     {error: res.message});
 }
 
+async function loadIceCreams(url, headers) {
+  let res;
+  try {
+    res = await fetch(url, {headers});
+    if (!res.ok) return handleError(url, res);
+
+    const iceCreams = await res.json();
+    const iceCreamMap = {};
+    for (const iceCream of iceCreams) {
+      iceCreamMap[iceCream.id] = iceCream.flavor;
+    }
+    React.setState({iceCreamMap});
+  } catch (e) {
+    handleError(url, res);
+  }
+}
+
 class Main extends Component {
 
   static propTypes = {
@@ -27,27 +44,14 @@ class Main extends Component {
    * Gets the current list of ice cream flavors
    * liked by the current user.
    */
-  async componentDidMount() {
+  componentDidMount() {
     const {restUrl, token, username} = this.props;
 
     // This header is used in all REST calls.
     this.headers = {Authorization: token};
 
     const url = `${restUrl}/ice-cream/${username}`;
-    let res;
-    try {
-      res = await fetch(url, {headers: this.headers});
-      if (!res.ok) return handleError(url, res);
-
-      const iceCreams = await res.json();
-      const iceCreamMap = {};
-      for (const iceCream of iceCreams) {
-        iceCreamMap[iceCream.id] = iceCream.flavor;
-      }
-      React.setState({iceCreamMap});
-    } catch (e) {
-      handleError(url, res);
-    }
+    loadIceCreams(url, this.headers);
   }
 
   /**

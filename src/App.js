@@ -24,7 +24,6 @@ class App extends Component {
     // This gets a socket.io connection from the server
     // and registers for "session-timeout" events.
     // If one is received, the users is logged out.
-    /* global io */
     const socket = io('https://localhost', {secure: true});
     socket.on('session-timeout', () => {
       alert('Your session timed out.');

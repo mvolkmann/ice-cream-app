@@ -30,7 +30,7 @@ function insert(flavor, cb) {
   client.query(sql, [flavor], (err, result) => {
     if (err) return cb(err);
 
-    const {id} = result.rows[0];
+    const [{id}] = result.rows;
     cb(null, id);
   });
 }
