@@ -12,6 +12,7 @@ function setup(app) {
 
   // Enable use of CORS.
   app.use((req, res, next) => {
+    // This could be more selective!
     res.header('Access-Control-Allow-Origin', '*');
     res.header('Access-Control-Allow-Headers',
       'Accept, Authorization, Content-Type, Origin, X-Requested-With');
