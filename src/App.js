@@ -1,7 +1,7 @@
 import React, {Component} from 'react';
 import Login from './login';
 import Main from './main';
-import 'whatwg-fetch';
+import 'whatwg-fetch'; // for REST calls
 import './App.css';
 
 // This allows the client to listen to socket.io events
@@ -18,12 +18,13 @@ class App extends Component {
     // where the top-most component manages all of the state.
     // Placing a bound version of the setState method on the React object
     // allows other components to call it in order to modify state.
-    // Each call causes the UI to re-render.
+    // Each call causes the UI to re-render,
+    // using the "Virtual DOM" to make this efficient.
     React.setState = this.setState.bind(this);
 
     // This gets a socket.io connection from the server
     // and registers for "session-timeout" events.
-    // If one is received, the users is logged out.
+    // If one is received, the user is logged out.
     const socket = io('https://localhost', {secure: true});
     socket.on('session-timeout', () => {
       alert('Your session timed out.');

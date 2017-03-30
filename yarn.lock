@@ -4300,6 +4300,10 @@ postcss@^5.0.10, postcss@^5.0.11, postcss@^5.0.12, postcss@^5.0.13, postcss@^5.0
     source-map "^0.5.6"
     supports-color "^3.2.3"
 
+postgresql-easy@^1.1.5:
+  version "1.1.5"
+  resolved "https://registry.yarnpkg.com/postgresql-easy/-/postgresql-easy-1.1.5.tgz#e79b522823b294dafe992facd8d3913be51bfe73"
+
 prelude-ls@~1.1.2:
   version "1.1.2"
   resolved "https://registry.yarnpkg.com/prelude-ls/-/prelude-ls-1.1.2.tgz#21932a549f5e52ffd9a827f570e04be62a97da54"

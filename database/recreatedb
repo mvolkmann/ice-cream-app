@@ -1,4 +1,4 @@
 db=ice_cream
 dropdb $db
 createdb $db
-psql $db -f tables.ddl
+psql -d $db -f tables.ddl

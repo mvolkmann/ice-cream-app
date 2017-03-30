@@ -28,6 +28,7 @@ class Login extends Component {
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({username, password})
       });
+
       if (res.ok) { // successful login
         const token = res.headers.get('Authorization');
         const text = await res.text(); // returns a promise
@@ -118,7 +119,7 @@ class Login extends Component {
           <button disabled={!canSubmit} onClick={this.onLogin}>
             Log In
           </button>
-          <button disabled={!canSubmit}onClick={this.onSignup}>
+          <button disabled={!canSubmit} onClick={this.onSignup}>
             Signup
           </button>
         </div>

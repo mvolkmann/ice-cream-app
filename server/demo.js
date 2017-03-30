@@ -29,7 +29,7 @@ async function demo() {
     await pg.updateById(tableName, ids[1], {flavor: 'chocolate chip'});
 
     // Get all the rows in the table.
-    const result = pg.getAll(tableName);
+    const result = await pg.getAll(tableName);
 
     // Output their ids and flavors.
     for (const row of result.rows) {
