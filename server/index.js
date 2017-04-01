@@ -30,8 +30,8 @@ const pg = new PgConnection({
 
 /**
  * Deletes an ice cream flavor from a given user.
+ * The URL will look like /ice-cream/some-user/some-flavor-id
  * The "Authorization" request header must be set.
- * curl -k -XDELETE https://localhost/ice-cream/some-id
  */
 app.delete('/ice-cream/:username/:id', async (req, res) => {
   if (!auth.authorize(req, res)) return;
@@ -62,6 +62,7 @@ app.get('/crash', () => {
 /**
  * Retrieves all ice cream ids and flavors
  * associated with a given user.
+ * The URL will look like /ice-cream/some-user
  * The "Authorization" request header must be set.
  */
 app.get('/ice-cream/:username', async (req, res) => {
@@ -83,10 +84,9 @@ app.get('/ice-cream/:username', async (req, res) => {
 
 /**
  * Adds an ice cream flavor to a given user.
- * The URL will look like /ice-cream/some-user?flavor=some-flavor.
+ * The URL will look like /ice-cream/some-user?flavor=some-flavor
  * The "Authorization" request header must be set.
  * The response will contain the id of newly created user_ice_creams row.
- * curl -k -XPOST https://localhost/ice-cream/some-user?flavor=vanilla
  */
 app.post('/ice-cream/:username', async (req, res) => {
   if (!auth.authorize(req, res)) return;
@@ -94,6 +94,8 @@ app.post('/ice-cream/:username', async (req, res) => {
   const {username} = req.params;
   const {flavor} = req.query;
 
+  // Creates a row in the user_ice_creams table
+  // that associates an ice cream flavor with a user.
   async function associate(username, iceCreamId) {
     const sql = `
       insert into user_ice_creams (username, ice_cream_id)
@@ -130,8 +132,8 @@ app.post('/ice-cream/:username', async (req, res) => {
 
 /**
  * Updates a record in the ice-cream table by id.
+ * The URL will look like /ice-cream/some-ice-cream-id?flavor=some-new-flavor
  * The "Authorization" request header must be set.
- * curl -k -XPUT https://localhost/ice-cream/some-id?flavor=some-flavor
  */
 app.put('/ice-cream/:id', async (req, res) => {
   if (!auth.authorize(req, res)) return;
@@ -150,7 +152,6 @@ app.put('/ice-cream/:id', async (req, res) => {
  * Logs in a user.
  * The username and password must be in the body
  * and the content type must be "application/json".
- * curl -k -XPOST https://localhost/login ...
  */
 app.post('/login', async (req, res) => {
   const {username, password} = req.body;
@@ -184,7 +185,6 @@ app.post('/login', async (req, res) => {
 /**
  * Logs out a user.
  * The "Authorization" request header must be set.
- * curl -k -XPOST https://localhost/logout ...
  */
 app.post('/logout', (req, res) => {
   if (!auth.authorize(req, res)) return;
@@ -197,7 +197,6 @@ app.post('/logout', (req, res) => {
  * Signs up a new user.
  * The username and password must be in the body
  * and the content type must be "application/json".
- * curl -k -XPOST https://localhost/signup ...
  */
 app.post('/signup', async (req, res) => {
   const {username, password} = req.body;

@@ -14,6 +14,10 @@ async function demo() {
     await pg.deleteAll(tableName);
 
     // Insert three new rows corresponding to three flavors.
+    // For each flavor, it calls pg-insert which returns a promise.
+    // flavors.map returns an array of these three promises.
+    // Promise.all returns a promise that resolves when
+    // all the promises in the array passed to it resolve.
     const flavors = ['vanilla', 'chocolate', 'strawberry'];
     const results = await Promise.all(
       flavors.map(f => pg.insert(tableName, {flavor: f})));

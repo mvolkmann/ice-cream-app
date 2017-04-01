@@ -26,6 +26,7 @@ function setup(app) {
   app.use(bodyParser.json({extended: true}));
 
   // Enable use of HTTPS.
+  // The two ".pem" files references are described later.
   const options = {
     key: fs.readFileSync('key.pem'),
     cert: fs.readFileSync('cert.pem'),
@@ -42,6 +43,8 @@ function start() {
   const PORT = 443;
   server.listen(PORT, () => console.log('listening on port', PORT));
 
+  // Configure Socket.IO to allow the server to communicate with the browser.
+  // Our usage supports session timeouts.
   const io = sio.listen(server);
   io.on('connection', socket => global.socket = socket);
 }
